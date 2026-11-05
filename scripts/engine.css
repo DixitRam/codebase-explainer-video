@@ -1,0 +1,128 @@
+/* House style ("ByteMonk"): near-black stage lit by soft colour washes, hue-per-node glass cards,
+   thin arrowed links, a packet that draws its own line, sentence-case Poppins headlines.
+   Tuned from 79 sampled ByteMonk frames (2026-10). Pages load fonts: Poppins 600/800, Inter, JetBrains Mono. */
+:root {
+  --bg: #05060b; --fg: #f2f4f8; --muted: #8b93a1; --dim: #5f6673; --card: #0f131a;
+  /* palette — every actor/concept owns one hue */
+  --cyan: #1fcade; --sky: #56c0fc; --magenta: #fd59bd; --violet: #927bff; --lilac: #b561ff;
+  --teal: #3acba3; --gold: #ffc61b; --red: #fa4972; --orange: #ff8a1f;
+  --wash: #0f1a2e;            /* per-video wash under the content: try #1b181e, #091c51, #001e27, #150d12 */
+  --bloom-a: rgba(253,89,189,.10); --bloom-b: rgba(31,202,222,.08);
+}
+* { box-sizing: border-box; margin: 0; }
+html { background: var(--bg); }
+html, body { width: 1920px; height: 1080px; overflow: hidden; }
+body {
+  font-family: Inter, sans-serif; color: var(--fg);
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 105%, var(--wash), transparent 70%),
+    radial-gradient(900px 700px at 100% 0%, var(--bloom-a), transparent 70%),
+    radial-gradient(900px 700px at 0% 100%, var(--bloom-b), transparent 70%),
+    var(--bg);
+}
+/* faint grid, only behind the centre */
+body::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 45% 40% at 50% 48%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse 45% 40% at 50% 48%, #000 30%, transparent 80%);
+}
+.abs { position: absolute; }
+.hide { opacity: 0; }
+.brand { right: 40px; top: 32px; font: 500 15px JetBrains Mono; letter-spacing: .3em; color: #4a5160; }
+
+/* type: hook / chapter / end cards, scene headlines */
+.kicker { font: 500 22px JetBrains Mono; letter-spacing: .35em; text-transform: uppercase; color: var(--dim); }
+.big { font: 800 128px/1.02 Poppins, sans-serif; letter-spacing: -.025em; }
+.big em, .headline em, .takeaway b { font-style: normal; color: var(--accent, var(--orange)); }
+.headline { font: 800 64px/1.1 Poppins, sans-serif; letter-spacing: -.02em; }
+.takeaway { font: 400 32px/1.35 Inter; color: #949dab; }
+.takeaway b { font-weight: 700; }
+.grad { background: linear-gradient(90deg, var(--cyan), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.watermark { font: 800 260px/1 Poppins; letter-spacing: -.03em; color: rgba(255,255,255,.04); white-space: nowrap; }
+.neon { color: var(--h, var(--cyan)); text-shadow: 0 0 24px currentColor; }
+
+/* master diagram: nodes + links, defined per page via window.DIAGRAM */
+#stage { left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; }
+.node {
+  --h: #8a94a6;
+  width: 240px; height: 120px; margin: -60px 0 0 -120px; border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--h) 45%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--h) 13%, #151a22), color-mix(in srgb, var(--h) 5%, #0b0e13));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 20px 50px rgba(0,0,0,.55);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+}
+.node.icon { height: 156px; margin-top: -78px; }
+.node svg { width: 40px; height: 40px; stroke: var(--h); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; position: relative; }
+.node b { font: 700 23px Inter; color: #fff; position: relative; }
+.node i { font: 500 14px JetBrains Mono; font-style: normal; color: var(--h); position: relative;
+  padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--h) 14%, transparent); }
+.node .glow { position: absolute; inset: -1px; border-radius: 20px; opacity: 0;
+  border: 2px solid var(--h); box-shadow: 0 0 34px color-mix(in srgb, var(--h) 55%, transparent), inset 0 0 26px color-mix(in srgb, var(--h) 18%, transparent); }
+/* links: thin, arrowed; the lit copy is a gradient between the two nodes' hues */
+.link { height: 2px; margin-top: -1px; background: rgba(255,255,255,.14); transform-origin: 0 50%; }
+.link::after { content: ""; position: absolute; right: -1px; top: -5px; border: 6px solid transparent; border-left: 9px solid rgba(255,255,255,.3); border-right: 0; }
+.link.on { height: 3px; margin-top: -1.5px; background: linear-gradient(90deg, var(--a, var(--teal)), var(--b, var(--teal))); box-shadow: 0 0 8px color-mix(in srgb, var(--b, var(--teal)) 60%, transparent); opacity: 0; }
+.link.on::after { top: -5px; border-left-color: var(--b, var(--teal)); }
+.branch { font: 500 15px JetBrains Mono; letter-spacing: .3em; color: #4a5160; }
+.linklabel { font: 500 15px JetBrains Mono; color: var(--fg); letter-spacing: .05em; background: var(--bg); padding: 2px 8px; border-radius: 6px; }
+.dot { width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 10px 2px var(--c, var(--teal)), 0 0 30px 6px color-mix(in srgb, var(--c, var(--teal)) 60%, transparent); }
+.dot.sm { width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; background: var(--c, var(--teal)); box-shadow: 0 0 10px var(--c, var(--teal)); }
+/* step marker: dashed box that hops along a pipeline */
+.stepbox { width: 264px; height: 144px; margin: -72px 0 0 -132px; border: 2px dashed #fff; border-radius: 24px; background: rgba(255,198,27,.06); }
+/* group container with an uppercase chip */
+.group { border: 1.5px solid color-mix(in srgb, var(--h, #8a94a6) 60%, transparent); border-radius: 22px; background: rgba(255,255,255,.015); }
+.group > .chip { position: absolute; left: 16px; top: 14px; font: 600 13px Inter; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--h, #8a94a6); padding: 4px 10px; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--h, #8a94a6) 50%, transparent); }
+
+/* detail cards: glass, optional 2px top stripe in the card's hue (style="--h:var(--violet)") */
+.card { background: linear-gradient(180deg, #141924, #0d1118); border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 34px 40px;
+  box-shadow: inset 0 2px 0 var(--h, rgba(255,255,255,.06)), 0 30px 80px rgba(0,0,0,.6); }
+.card h3 { font: 700 30px Inter; margin-bottom: 6px; }
+.card .sub { font: 500 17px JetBrains Mono; color: var(--muted); margin-bottom: 22px; }
+.row { display: flex; justify-content: space-between; gap: 30px; padding: 12px 0; border-top: 1px solid rgba(255,255,255,.07); font-size: 22px; }
+.row span:first-child { color: var(--muted); }
+.row span:last-child { font: 600 22px JetBrains Mono; }
+.row .empty { color: var(--orange); }
+
+/* screencast frame; .shot is the zoomable layer (image + rings move together) */
+.win { left: 160px; top: 60px; width: 1600px; height: 900px; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,.1); box-shadow: 0 40px 120px rgba(0,0,0,.75); background: #000; }
+.shot { left: 0; top: 0; width: 1600px; height: 900px; transform-origin: 0 0; }
+.shot img { width: 1600px; height: 900px; display: block; }
+.ring { border: 4px solid var(--orange); border-radius: 12px; box-shadow: 0 0 30px var(--orange); }
+.ring.green { border-color: var(--teal); box-shadow: 0 0 30px var(--teal); }
+.redact { background: #0b0d11; }
+.tag { font: 700 18px JetBrains Mono; color: #000; background: var(--orange); padding: 6px 14px; border-radius: 8px; white-space: nowrap; }
+.tag.green { background: var(--teal); }
+
+/* code card, drawn as a Mac window. The window paints OUTSIDE the box (::before), so text and
+   underline positions are unchanged: file name sits in the title bar, code where it always was. */
+.code { left: 260px; top: 230px; width: 1400px; z-index: 0; }
+.code::before { content: ""; position: absolute; inset: -34px -48px -40px; z-index: -1; border-radius: 18px;
+  background: linear-gradient(#1a182a 0 70px, #0d0d1d 70px); border: 1px solid #23253a; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.code::after { content: ""; position: absolute; left: -22px; top: -6px; width: 12px; height: 12px; border-radius: 50%;
+  background: #ff5f57; box-shadow: 20px 0 0 #febc2e, 40px 0 0 #28c840; }
+.code .file { display: block; text-align: center; font: 500 18px JetBrains Mono; color: #8a8fa0; height: 36px; margin: -14px 0 44px; }
+.code .lang { position: absolute; right: -20px; top: -10px; font: 600 14px JetBrains Mono; color: var(--gold); padding: 3px 10px;
+  border: 1px solid #bf9f61; border-radius: 999px; background: rgba(191,159,97,.12); }
+.code pre { font: 400 30px/1.6 JetBrains Mono; white-space: pre; }
+.k { color: #c792ea; } .s { color: #c3e88d; } .f { color: #82aaff; } .c { color: #5c6878; } .n { color: #ffcb6b; }
+.uline { overflow: visible; }
+.hl { border-radius: 6px; padding: 0 4px; margin: 0 -4px; }
+
+/* subtitles (= narration); lighter than before, still always on */
+.cap { left: 0; right: 0; bottom: 44px; text-align: center; }
+.cap span { display: inline-block; max-width: 1500px; font: 500 31px/1.35 Inter; background: rgba(5,6,11,.62); padding: 9px 20px; border-radius: 12px; }
+
+/* vendor / legacy code the team does not maintain: always drawn as a grey black box */
+.blackbox {
+  background: repeating-linear-gradient(135deg, #10131a 0 14px, #0c0f15 14px 28px);
+  border: 2px dashed #4a5160; border-radius: 20px; padding: 30px 36px; color: #b9c2cf;
+}
+.blackbox h3 { font: 700 28px JetBrains Mono; color: #c9d1dc; margin-bottom: 4px; }
+.blackbox .sub { font: 600 16px Inter; letter-spacing: .2em; color: #7d8796; text-transform: uppercase; margin-bottom: 18px; }
+.blackbox .io { font: 400 21px/1.6 JetBrains Mono; }
+.blackbox .io b { color: var(--fg); font-weight: 700; }
+.ours { display: inline-block; font: 700 15px Inter; letter-spacing: .2em; color: #000; background: var(--orange); padding: 4px 10px; border-radius: 6px; text-transform: uppercase; }

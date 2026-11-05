@@ -1,0 +1,169 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Phosphor Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=block" rel="stylesheet">
+<style>
+  :root{--tube:#0A0F0A;--ph:#33FF66;--dim:#1A7F33;--amber:#FFB000}
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#000}
+  #tube{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#0E1A10 0%,var(--tube) 60%,#050805 100%);filter:url(#crt)}
+  .grid{position:absolute;left:120px;top:34px;font-family:VT323,monospace;font-size:52px;line-height:42px;color:var(--ph);
+        text-shadow:0 0 4px rgba(51,255,102,.75),0 0 16px rgba(51,255,102,.35)}
+  .row{height:42px;white-space:nowrap}
+  .c{display:inline-block;width:21px;height:42px;text-align:center;vertical-align:top;overflow:visible}
+  .d{color:var(--dim);text-shadow:0 0 6px rgba(26,127,51,.5)}
+  .i{background:var(--ph);color:var(--tube);text-shadow:none;box-shadow:0 0 14px rgba(51,255,102,.6)}
+  .a{color:var(--amber);text-shadow:0 0 4px rgba(255,176,0,.75),0 0 16px rgba(255,176,0,.35)}
+  .ai{background:var(--amber);color:var(--tube);text-shadow:none;box-shadow:0 0 14px rgba(255,176,0,.6)}
+  #ghost{opacity:.22;filter:blur(1px)}
+  #banner{position:absolute;left:0;right:0;top:350px;text-align:center;font-family:VT323,monospace;font-size:150px;line-height:1;color:var(--ph);
+          text-shadow:0 0 8px rgba(51,255,102,.8),0 0 30px rgba(51,255,102,.4);visibility:hidden}
+  #banner span{padding:0 28px}
+  #caps{position:absolute;left:0;top:896px;width:1920px;height:184px;display:grid;place-items:center}
+  #caps::before{content:"";position:absolute;left:80px;right:80px;top:6px;border-top:2px dashed var(--dim);opacity:.6}
+  .cap-group{grid-area:1/1;font-family:VT323,monospace;font-size:64px;color:var(--ph);text-shadow:0 0 6px rgba(51,255,102,.7),0 0 20px rgba(51,255,102,.3)}
+  .cap-group::before{content:"> ";color:var(--dim)}
+  .cap-word{opacity:calc(.32 + .68*var(--on,0))}
+  #flash{position:absolute;inset:0;background:var(--ph);opacity:0}
+  #scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.32) 2px 4px)}
+  #bar{position:absolute;left:0;right:0;top:0;height:160px;background:linear-gradient(to bottom,rgba(51,255,102,0),rgba(51,255,102,.05),rgba(51,255,102,0))}
+  #vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 70% at 50% 50%,rgba(0,0,0,0) 60%,rgba(0,0,0,.75) 100%)}
+  #glass{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 30% 18%,rgba(255,255,255,.035),rgba(255,255,255,0) 70%)}
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="crt" filterUnits="userSpaceOnUse" x="0" y="0" width="1920" height="1080" color-interpolation-filters="sRGB">
+  <feImage id="map" x="0" y="0" width="1920" height="1080" preserveAspectRatio="none" result="m"/>
+  <feDisplacementMap in="SourceGraphic" in2="m" scale="70" xChannelSelector="R" yChannelSelector="G"/>
+</filter></svg>
+<div id="tube">
+  <div id="bar"></div>
+  <div class="grid" id="ghost"></div>
+  <div class="grid" id="scr"></div>
+  <div id="banner"><span>*** BIGGEST CHANGE ***</span></div>
+  <div id="caps"></div>
+  <div id="flash"></div>
+</div>
+<div id="scan"></div><div id="vig"></div><div id="glass"></div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="../lab.js"></script>
+<script>
+const {tl, cue} = LAB;
+const COLS = 80, ROWS = 20;
+
+// Barrel map baked once: R/G encode outward sampling offset growing with r^2.
+(function () {
+  const W = 480, H = 270, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const cx = cv.getContext('2d'), im = cx.createImageData(W, H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const nx = x / (W - 1) * 2 - 1, ny = y / (H - 1) * 2 - 1, r2 = nx * nx * .6 + ny * ny * .6, k = 4 * (y * W + x);
+    im.data[k] = 128 + 127 * nx * r2 * .9; im.data[k + 1] = 128 + 127 * ny * r2 * .9; im.data[k + 2] = 128; im.data[k + 3] = 255;
+  }
+  cx.putImageData(im, 0, 0);
+  document.getElementById('map').setAttribute('href', cv.toDataURL());
+})();
+
+// Character-cell framebuffer, built once; frames only rewrite changed cells.
+function makeGrid(el) {
+  const cells = [];
+  for (let r = 0; r < ROWS; r++) {
+    const row = document.createElement('div'); row.className = 'row';
+    const cr = [];
+    for (let c = 0; c < COLS; c++) { const s = document.createElement('span'); s.className = 'c'; s.__v = ''; s.__a = ''; row.appendChild(s); cr.push(s); }
+    el.appendChild(row); cells.push(cr);
+  }
+  return cells;
+}
+const SCR = makeGrid(document.getElementById('scr')), GHO = makeGrid(document.getElementById('ghost'));
+
+// Screen items. type: 'print' (instant), 'type' (cps), 'rows' (block printed row by row), 'travel' (█ along a line)
+const items = [];
+const put = (o) => items.push({a: '', t1: 1e9, ...o});
+const box = (w, h, label = '') => {
+  const top = '┌' + '─'.repeat(w - 2) + '┐', bot = '└' + '─'.repeat(w - 2) + '┘', mid = '│' + ' '.repeat(w - 2) + '│';
+  return [top, ...Array(h - 2).fill(mid), bot];
+};
+const center = (line, s) => { const p = Math.floor((line.length - s.length) / 2); return line.slice(0, p) + s + line.slice(p + s.length); };
+
+function frame(t) {
+  const buf = Array.from({length: ROWS}, () => Array(COLS).fill(null));
+  const w = (r, c, s, a) => { for (let i = 0; i < s.length; i++) if (c + i < COLS && r < ROWS) buf[r][c + i] = [s[i], a]; };
+  let cur = null;
+  for (const it of items) {
+    if (t < it.t0 || t >= it.t1) continue;
+    const dt = t - it.t0;
+    if (it.k === 'print') w(it.r, it.c, it.s, it.a);
+    else if (it.k === 'type') {
+      const n = Math.min(it.s.length, Math.floor(dt * it.cps) + 1);
+      w(it.r, it.c, it.s.slice(0, n), it.a);
+      if (it.cur && t < it.cur) cur = [it.r, it.c + n, n < it.s.length];
+    } else if (it.k === 'rows') {
+      const n = Math.min(it.s.length, Math.floor(dt / it.dt) + 1);
+      for (let i = 0; i < n; i++) w(it.r + i, it.c, it.s[i], typeof it.a === 'function' ? it.a(t) : it.a);
+    } else if (it.k === 'travel') {
+      const n = Math.floor(dt * it.cps);
+      if (n < it.len) w(it.r, it.c + n, '█', '');
+    } else if (it.k === 'cursor') cur = [it.r, it.c, false];
+  }
+  // block cursor: solid while typing, 2 Hz blink when idle
+  if (cur && (cur[2] || Math.floor(t * 4) % 2 === 0)) w(cur[0], cur[1], '█', '');
+  return buf;
+}
+function paint(cells, buf) {
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const v = buf[r][c], s = cells[r][c], ch = v ? v[0] : '', a = v ? 'c ' + v[1] : 'c';
+    if (s.__v !== ch) { s.textContent = ch; s.__v = ch; }
+    if (s.__a !== a) { s.className = a; s.__a = a; }
+  }
+}
+
+// ---------- script ----------
+const CLR = cue('build');          // screen clear
+const hdr = 'ACME VT-320    config-v2       tty1          [ONLINE]';
+put({k: 'print', r: 0, c: 0, s: hdr, a: 'd', t0: 0});
+put({k: 'print', r: 1, c: 0, s: '─'.repeat(COLS), a: 'd', t0: 0});
+// beat 1
+put({k: 'type', r: 3, c: 0, s: '$ changelog --biggest', cps: 45, t0: 0, t1: CLR, cur: cue('change')});
+put({k: 'type', r: 5, c: 0, s: '  1 entry   priority: MAJOR   scope: device config', cps: 120, a: 'd', t0: cue('biggest') + .1, t1: CLR});
+// beat 2
+put({k: 'type', r: 3, c: 0, s: '$ cat build-config.ts', cps: 55, t0: CLR + .08, t1: 1e9, cur: cue('config')});
+const FN = box(24, 5); FN[2] = center(FN[2], 'buildConfig()');
+const fnFlash = (t) => (t >= cue('in') + .2 && t < cue('in') + .32) || (t >= cue('comes') && t < cue('comes') + .1) ? 'i' : '';
+put({k: 'rows', r: 7, c: 28, s: FN, dt: .07, a: fnFlash, t0: cue('config')});
+put({k: 'print', r: 13, c: 28, s: ' PURE ', a: 'i', t0: cue('pure')});
+put({k: 'type', r: 13, c: 35, s: 'FUNCTION', cps: 40, t0: cue('function')});
+// beat 3: snapshot goes in
+const SN = box(18, 5); SN[2] = center(SN[2], 'snapshot');
+put({k: 'rows', r: 7, c: 0, s: SN, dt: .07, t0: cue('snapshot')});
+put({k: 'type', r: 9, c: 18, s: '─────────▶', cps: 60, a: 'd', t0: cue('goes')});
+put({k: 'travel', r: 9, c: 18, len: 10, cps: 22, t0: cue('goes') + .02});
+// beat 4: config comes out
+const CF = box(18, 7, ''); CF[0] = '┌─ config.json ──┐';
+const CFin = ['│ {              │', '│   sensors: [..]│', '│   calib:   [..]│', '│ }              │'];
+put({k: 'rows', r: 6, c: 62, s: [CF[0]], dt: .07, t0: cue('config', 2)});
+put({k: 'rows', r: 7, c: 62, s: ['│                │', '│                │', '│                │', '│                │'], dt: .05, t0: cue('config', 2) + .07});
+put({k: 'rows', r: 7, c: 62, s: CFin, dt: .07, t0: cue('out')});
+put({k: 'rows', r: 11, c: 62, s: [CF[6]], dt: .07, t0: cue('config', 2) + .25});
+put({k: 'type', r: 9, c: 52, s: '─────────▶', cps: 60, a: 'd', t0: cue('comes')});
+put({k: 'travel', r: 9, c: 52, len: 10, cps: 24, t0: cue('comes') + .02});
+// beat 5: no database, no history (amber)
+put({k: 'type', r: 15, c: 0, s: 'DB ...................... ', cps: 70, a: 'a', t0: cue('no')});
+put({k: 'print', r: 15, c: 26, s: ' NOT FOUND ', a: 'ai', t0: cue('database') + .18});
+put({k: 'type', r: 17, c: 0, s: 'HISTORY ................. ', cps: 70, a: 'a', t0: cue('no', 2)});
+put({k: 'print', r: 17, c: 26, s: ' NOT FOUND ', a: 'ai', t0: cue('history') + .18});
+put({k: 'type', r: 19, c: 0, s: '$ ', cps: 60, t0: cue('history') + .55, cur: 99});
+
+// ---------- GSAP layer: banner, clear flash, refresh bar ----------
+const ban = document.getElementById('banner'), bspan = ban.querySelector('span');
+tl.set(ban, {visibility: 'visible'}, cue('change'));
+[[0, 1], [.12, 0], [.24, 1], [.36, 0]].forEach(([d, on]) => tl.set(bspan, on ? {backgroundColor: '#33FF66', color: '#0A0F0A', textShadow: 'none'} : {backgroundColor: 'rgba(0,0,0,0)', color: '#33FF66', textShadow: '0 0 8px rgba(51,255,102,.8),0 0 30px rgba(51,255,102,.4)'}, cue('change') + d));
+tl.set(ban, {visibility: 'hidden'}, CLR);
+tl.set('#flash', {opacity: .3}, CLR); tl.set('#flash', {opacity: 0}, CLR + 1 / 30);
+tl.fromTo('#bar', {y: -200}, {y: 1100, duration: 3.2, ease: 'none', repeat: 3}, 0);
+
+LAB.captions(document.getElementById('caps'));
+LAB.done();
+const s = window.__seek;
+window.__seek = (t) => { s(t); paint(SCR, frame(t)); paint(GHO, frame(Math.max(0, t - 1 / 24))); };
+addEventListener('load', () => document.fonts.load('46px VT323').then(() => window.__seek(0)));
+window.__seek(0);
+</script>
+</body></html>

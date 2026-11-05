@@ -1,0 +1,146 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Proof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&display=block" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:#1C1C1C;color:#ECECEC}
+  svg{position:absolute;left:0;top:0}
+  #cap{position:absolute;left:0;top:896px;width:1920px;height:184px}
+  .cap-group{position:absolute;left:0;right:0;top:58px;text-align:center;font-family:Inter;font-weight:400;font-size:46px;letter-spacing:.005em}
+  .cap-word{display:inline-block;color:#ECECEC;opacity:calc(.3 + .7*var(--on,0))}
+</style></head>
+<body>
+<svg id="s" width="1920" height="896" viewBox="0 0 1920 896" fill="none"></svg>
+<div id="cap"></div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="../lab.js"></script>
+<script>
+const BLUE="#58C4DD",GREEN="#83C167",GOLD="#F0AC5F",RED="#FC6255",GREY="#888888",WHITE="#ECECEC",YEL="#FFFF00";
+const NS="http://www.w3.org/2000/svg", svg=document.getElementById("s");
+const el=(tag,attrs,parent=svg)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e};
+const MATH={fam:"Libre Baskerville",it:1}, SANS={fam:"Inter",wt:500}, MONO={fam:"JetBrains Mono",wt:500};
+
+// lay a row of pieces into per-glyph <text> elements (measured once, so the timeline stays seekable)
+function row(pieces,cx,y,size,gap=0){
+  const out=[];let x=0;const parts=pieces.map(p=>{
+    const t=el("text",{x:0,y,style:"white-space:pre","font-family":p.fam,"font-size":size,"font-style":p.it?"italic":"normal","font-weight":p.wt||400});
+    t.textContent=p.s;const w=t.getComputedTextLength(),xs=[...p.s].map((_,i)=>t.getStartPositionOfChar(i).x);t.remove();
+    const r={p,x,w,xs};x+=w+gap;return r});
+  const x0=cx-(x-gap)/2;
+  parts.forEach(({p,x:px,xs})=>[...p.s].forEach((ch,i)=>{if(ch===" ")return;
+    const gx=x0+px+xs[i];const t=el("text",{x:gx,y,"font-family":p.fam,"font-size":size,"font-style":p.it?"italic":"normal","font-weight":p.wt||400,fill:p.fill,stroke:p.fill,"stroke-width":size/60,"fill-opacity":0,"stroke-opacity":0});
+    t.textContent=ch;gsap.set(t,{svgOrigin:`${gx} ${y}`});out.push({el:t,ch,x:gx,y,size,fill:p.fill})}));
+  return out;
+}
+Promise.all(["italic 100px 'Libre Baskerville'","500 100px Inter","400 46px Inter","500 100px 'JetBrains Mono'"].map(f=>document.fonts.load(f))).then(build);
+function build(){
+  const {tl,cue}=LAB;
+  // manim Write: outline strokes on, then the fill comes in
+  function write(gs,t,stag=.05,d=.5){gs.forEach((g,i)=>{const D=g.size*6,ti=t+i*stag;
+    tl.fromTo(g.el,{strokeDasharray:D,strokeDashoffset:D,strokeOpacity:1},{strokeDashoffset:0,duration:d,ease:"power1.out"},ti);
+    tl.fromTo(g.el,{fillOpacity:0},{fillOpacity:1,duration:.3},ti+d*.6);
+    tl.to(g.el,{strokeOpacity:0,duration:.3},ti+d*.8);});}
+  function fadeOut(gs,t,d=.4,dy=0){tl.to(gs.map(g=>g.el),{autoAlpha:0,y:dy,duration:d,ease:"power1.in"},t)}
+  // TransformMatching: source glyph flies to the target slot and cross-fades into it
+  function move(a,b,t,d=.8){
+    tl.to(a.el,{x:b.x-a.x,y:b.y-a.y,scale:b.size/a.size,duration:d,ease:"power2.inOut"},t);
+    tl.to(a.el,{autoAlpha:0,duration:d*.5},t+d*.4);
+    gsap.set(b.el,{fillOpacity:1});
+    tl.fromTo(b.el,{x:a.x-b.x,y:a.y-b.y,scale:a.size/b.size,autoAlpha:0},{x:0,y:0,scale:1,autoAlpha:1,duration:d,ease:"power2.inOut"},t);
+  }
+  function stroke(e,t,d=.5,ease="power1.inOut"){const L=e.getTotalLength();gsap.set(e,{autoAlpha:0});tl.set(e,{autoAlpha:1},t);tl.fromTo(e,{strokeDasharray:L,strokeDashoffset:L},{strokeDashoffset:0,duration:d,ease},t);return L}
+  // yellow surround: draw, hold, undraw
+  function surround(gs,t,hold,pad=16){const xs=gs.map(g=>g.el.getBBox());const x1=Math.min(...xs.map(b=>b.x))-pad,y1=Math.min(...xs.map(b=>b.y))-pad,x2=Math.max(...xs.map(b=>b.x+b.width))+pad,y2=Math.max(...xs.map(b=>b.y+b.height))+pad;
+    const r=el("rect",{x:x1,y:y1,width:x2-x1,height:y2-y1,rx:6,stroke:YEL,"stroke-width":3});const L=stroke(r,t,.45);
+    tl.to(r,{strokeDashoffset:-L,duration:.45,ease:"power1.inOut"},t+.45+hold);}
+
+  // 1. "the biggest change"
+  const T1=row([{s:"the biggest ",...SANS,fill:GREY},{s:"change",...SANS,fill:GOLD}],960,470,104);
+  write(T1.slice(0,3),cue("the"));write(T1.slice(3,10),cue("biggest"),.04);write(T1.slice(10),cue("change"));
+  // 2. change -> buildConfig, then "pure function"
+  const T2=row([{s:"buildConfig",...MONO,fill:GOLD}],960,440,112);
+  const ch=T1.slice(10); // c h a n g e
+  fadeOut(T1.slice(0,10),cue("build")-.05,.25,-12);
+  fadeOut([ch[1],ch[2],ch[5]],cue("build"),.35);
+  move(ch[0],T2[5],cue("build"));move(ch[3],T2[7],cue("build"));move(ch[4],T2[10],cue("build"));
+  write(T2.slice(0,5),cue("build")+.3,.06);
+  write([T2[6],T2[8],T2[9]],cue("config"),.07);
+  const T3=row([{s:"pure ",...SANS,fill:WHITE},{s:"function",...SANS,fill:WHITE}],960,600,68);
+  write(T3.slice(0,4),cue("pure"),.05,.4);write(T3.slice(4),cue("function"),.04,.4);
+  surround(T3.slice(0,4),cue("pure")+.25,.3,14);
+
+  // 3. collapse into f : S -> C
+  const EQ=row([{s:"f",...MATH,fill:GOLD},{s:":",fam:"Inter",wt:400,fill:WHITE},{s:"S",...MATH,fill:BLUE},{s:"→",fam:"Inter",wt:400,fill:WHITE},{s:"C",...MATH,fill:GREEN}],960,190,92,34);
+  const S0=cue("snapshot");
+  fadeOut(T3,S0,.35);
+  fadeOut(T2.filter((_,i)=>i!==5&&i!==8),S0,.4);
+  move(T2[8],EQ[0],S0,.9);move(T2[5],EQ[4],S0,.9);
+  write([EQ[1],EQ[2],EQ[3]],S0+.35,.1);
+  // sets
+  const eS=el("ellipse",{cx:500,cy:575,rx:250,ry:180,stroke:BLUE,"stroke-width":4,fill:BLUE,"fill-opacity":0});
+  stroke(eS,S0+.3,.8);tl.fromTo(eS,{attr:{"fill-opacity":0}},{attr:{"fill-opacity":.08},duration:.4},S0+.9);
+  const lS=row([{s:"Snapshot",...SANS,fill:BLUE}],500,822,40);write(lS,S0+.6,.03,.35);
+  const dS=[[420,505],[400,630],[590,520],[530,665]].map(([x,y])=>el("circle",{cx:x,cy:y,r:11,fill:BLUE}));
+  const mover=el("circle",{cx:560,cy:590,r:13,fill:BLUE});
+  tl.fromTo([...dS,mover],{autoAlpha:0,scale:0,svgOrigin:"500 575"},{autoAlpha:1,scale:1,duration:.35,stagger:.06,ease:"back.out(2)",svgOrigin:"500 575"},S0+.7);
+  // f node + mapsto arrow, first half
+  const node=el("circle",{cx:960,cy:590,r:58,stroke:GOLD,"stroke-width":4,fill:"#1C1C1C"});
+  const nodeF=row([{s:"f",...MATH,fill:GOLD}],957,616,72);
+  const G0=cue("goes");
+  stroke(node,G0,.5);write(nodeF,G0+.15,0,.4);
+  const tail=el("path",{opacity:0,d:"M584,568 V612",stroke:WHITE,"stroke-width":4,"stroke-linecap":"round"});
+  const p1=el("path",{d:"M584,590 Q760,430 900,580",stroke:WHITE,"stroke-width":4,"stroke-linecap":"round"});
+  tl.fromTo(tail,{autoAlpha:0},{autoAlpha:1,duration:.2},G0);stroke(p1,G0,.45);
+  // the dot goes in (seekable: point-on-path from a proxy tween)
+  function rideDot(dot,path,t,d,ease="power2.inOut"){const L=path.getTotalLength(),o={p:0},sx=+dot.getAttribute("cx"),sy=+dot.getAttribute("cy");
+    tl.fromTo(o,{p:0},{p:1,duration:d,ease,onUpdate(){const pt=path.getPointAtLength(o.p*L);dot.setAttribute("cx",pt.x);dot.setAttribute("cy",pt.y)},
+      onReverseComplete(){dot.setAttribute("cx",sx);dot.setAttribute("cy",sy)}},t);}
+  // move dot onto the path start, then along it
+  tl.to(mover,{attr:{cx:584,cy:590},duration:.25,ease:"power2.inOut"},G0+.3);
+  rideDot(mover,p1,G0+.55,.55);
+  tl.to(mover,{autoAlpha:0,duration:.12},G0+1.05);
+  tl.to(node,{attr:{"stroke-width":8},duration:.15,yoyo:true,repeat:1},G0+1.05);
+  // codomain on "config"
+  const C0=cue("config",2);
+  const eC=el("ellipse",{cx:1420,cy:575,rx:250,ry:180,stroke:GREEN,"stroke-width":4,fill:GREEN,"fill-opacity":0});
+  stroke(eC,C0,.8);tl.fromTo(eC,{attr:{"fill-opacity":0}},{attr:{"fill-opacity":.08},duration:.4},C0+.6);
+  const lC=row([{s:"Config",...SANS,fill:GREEN}],1420,822,40);write(lC,C0+.3,.03,.35);
+  const dC=[[1500,505],[1540,640],[1350,670]].map(([x,y])=>el("circle",{cx:x,cy:y,r:11,fill:GREEN}));
+  tl.fromTo(dC,{autoAlpha:0,scale:0,svgOrigin:"1420 575"},{autoAlpha:1,scale:1,duration:.35,stagger:.06,ease:"back.out(2)",svgOrigin:"1420 575"},C0+.4);
+  // second half: a config comes out
+  const O0=cue("comes");
+  const p2=el("path",{d:"M1020,580 Q1160,430 1336,560",stroke:WHITE,"stroke-width":4,"stroke-linecap":"round"});
+  const head=el("path",{d:"M1312,532 L1340,563 L1300,568",stroke:WHITE,"stroke-width":4,"stroke-linecap":"round","stroke-linejoin":"round"});
+  stroke(p2,O0,.4);tl.fromTo(head,{autoAlpha:0},{autoAlpha:1,duration:.15},O0+.35);
+  const out=el("circle",{cx:1020,cy:580,r:13,fill:GREEN});
+  tl.fromTo(out,{autoAlpha:0,scale:0,svgOrigin:"1020 580"},{autoAlpha:1,scale:1,duration:.2,svgOrigin:"1020 580"},O0+.1);
+  rideDot(out,p2,O0+.2,.6);
+  tl.to(out,{attr:{cx:1410,cy:575},duration:.3,ease:"power2.out"},O0+.8);
+
+  // 4. red ghosts: an extra DB input, a t-1 self-loop; struck, faded to scaffolding
+  const N0=cue("no");
+  const dbArrow=el("path",{d:"M960,770 V660",stroke:RED,"stroke-width":4,"stroke-linecap":"round"});
+  const dbHead=el("path",{d:"M944,676 L960,656 L976,676",stroke:RED,"stroke-width":4,"stroke-linecap":"round","stroke-linejoin":"round"});
+  const DB=row([{s:"DB",...SANS,fill:RED}],960,840,52);
+  stroke(dbArrow,N0,.35);tl.fromTo(dbHead,{autoAlpha:0},{autoAlpha:1,duration:.12},N0+.3);write(DB,N0+.05,.06,.35);
+  const k1=el("path",{d:"M900,790 L1020,700",stroke:RED,"stroke-width":5,"stroke-linecap":"round"});
+  stroke(k1,cue("database"),.25,"power2.out");
+  tl.to([dbArrow,dbHead,k1,...DB.map(g=>g.el)],{opacity:.15,duration:.5},cue("database")+.4);
+  const H0=cue("no",2);
+  const loop=el("path",{d:"M928,538 C860,400 1060,400 992,538",stroke:RED,"stroke-width":4,"stroke-linecap":"round"});
+  const loopHead=el("path",{d:"M1006,516 L992,538 L974,520",stroke:RED,"stroke-width":4,"stroke-linecap":"round","stroke-linejoin":"round"});
+  const T1m=row([{s:"t−1",...MATH,fill:RED}],960,418,44);
+  stroke(loop,H0,.4);tl.fromTo(loopHead,{autoAlpha:0},{autoAlpha:1,duration:.12},H0+.35);write(T1m,H0+.1,.05,.3);
+  const k2=el("path",{d:"M900,470 L1020,380",stroke:RED,"stroke-width":5,"stroke-linecap":"round"});
+  stroke(k2,cue("history"),.25,"power2.out");
+  tl.to([loop,loopHead,k2,...T1m.map(g=>g.el)],{opacity:.15,duration:.5},cue("history")+.35);
+  // only f : S -> C stays at full opacity
+  tl.to([eS,eC,lS,lC].flat().map(x=>x.el||x).concat(dS,dC,[mover,out,tail,p1,p2,head,node],nodeF.map(g=>g.el)),{opacity:.4,duration:.5},8.9);
+  surround(EQ,8.95,5,22);
+
+  LAB.captions(document.getElementById("cap"));
+  LAB.done();
+  { const s = window.__seek; window.__seek = (t) => { s(t); }; } // return nothing: Playwright would serialise the whole timeline
+}
+</script></body></html>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Patent Drawing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=block" rel="stylesheet">
+<style>
+:root{--paper:#F3EEDF;--ink:#141414;--red:#B3261E}
+*{margin:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--paper)}
+svg{position:absolute;left:0;top:0}
+.cas{font-family:"Libre Caslon Text",serif;fill:var(--ink)}
+.cou{font-family:"Courier Prime",monospace;fill:var(--ink)}
+.plex{font-family:"IBM Plex Mono",monospace;fill:var(--ink);font-size:21px;white-space:pre}
+.ln{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:square}
+.dash{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-dasharray:9 7}
+.red{fill:none;stroke:var(--red);stroke-width:3.2;stroke-linecap:round}
+#caps{position:absolute;left:0;top:896px;width:1920px;height:184px;background:var(--paper)}
+#caps::before{content:"";position:absolute;left:40px;right:40px;top:0;border-top:1px solid #14141433}
+.cap-group{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Courier Prime",monospace;font-weight:700;font-size:42px;color:var(--ink)}
+.cap-word{margin:0 .2em;opacity:calc(.3 + .7*var(--on,0))}
+</style></head><body>
+<svg width="1920" height="896" viewBox="0 0 1920 896">
+  <defs>
+    <filter id="fibre" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/><feColorMatrix values="0 0 0 0 0.08  0 0 0 0 0.07  0 0 0 0 0.05  0 0 0 .55 0"/></filter>
+    <pattern id="hatch" patternUnits="userSpaceOnUse" width="11" height="11" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="11" stroke="#141414" stroke-width="1.3" opacity=".6"/></pattern>
+    <clipPath id="hclip"><rect id="hrect" x="781" y="481" width="0" height="178"/></clipPath>
+    <marker id="ah" viewBox="0 0 12 10" refX="11" refY="5" markerWidth="12" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0 L12 5 L0 10z" fill="#141414"/></marker>
+  </defs>
+  <rect width="1920" height="896" filter="url(#fibre)" opacity=".05"/>
+  <rect x="40" y="28" width="1840" height="848" fill="none" stroke="#141414" stroke-width="1.2"/>
+
+  <!-- sheet header -->
+  <text id="hd1" class="cas" x="80" y="70" font-size="24"></text>
+  <text id="hd2" class="cas" x="760" y="70" font-size="24"></text>
+  <text id="hd3" class="cas" x="1180" y="70" font-size="24"></text>
+  <text id="hd4" class="cas" x="1840" y="70" font-size="24" text-anchor="end"></text>
+  <path id="hrule" class="ln" d="M80 90 H1840" stroke-width="1"/>
+  <text id="fig" class="cas" x="80" y="162" font-size="58" font-style="italic"></text>
+  <text id="figsub" class="cou" x="84" y="204" font-size="22" letter-spacing="1"></text>
+
+  <!-- claim -->
+  <text id="clh" class="cas" x="1100" y="146" font-size="20" letter-spacing="3"></text>
+  <text id="cl1" class="plex" x="1100" y="182"></text>
+  <text id="cl2" class="plex" x="1100" y="214"></text>
+  <text id="cl3" class="plex" x="1100" y="246"></text>
+  <text id="cl4" class="plex" x="1100" y="278"></text>
+  <text id="cl5" class="plex" x="1100" y="310"></text>
+  <path id="sigrule" class="ln" d="M1100 334 H1830" stroke-width="1" stroke-dasharray="3 5"/>
+  <text id="sig" class="plex" x="1100" y="366" font-weight="500"></text>
+
+  <!-- 102 snapshot: stacked sheets -->
+  <path id="p102b" class="ln" d="M228 478 V450 H408 V650 H388"/>
+  <path id="p102a" class="ln" d="M214 492 V464 H394 V664 H374"/>
+  <path id="p102" class="ln" d="M200 478 H340 L374 512 V690 H200 Z M340 478 V512 H374 M226 540 H340 M226 572 H348 M226 604 H320 M226 636 H344"/>
+  <path id="l102" class="ln" d="M250 418 Q262 446 276 478" stroke-width="1.2"/>
+  <text id="n102" class="cou" x="222" y="410" font-size="26"></text>
+
+  <!-- 108 arrow -->
+  <path id="a108" class="ln" d="M396 572 H776"/>
+  <path id="h108" d="M776 572 L756 562 L756 582Z" fill="#141414"/>
+  <text id="n108" class="cou" x="560" y="550" font-size="26"></text>
+
+  <!-- 104 function -->
+  <rect id="hfill" x="780" y="480" width="320" height="180" fill="url(#hatch)" clip-path="url(#hclip)"/>
+  <rect x="852" y="548" width="176" height="44" fill="#F3EEDF" id="labelbg"/>
+  <path id="p104" class="ln" d="M780 480 H1100 V660 H780 Z" stroke-width="2.2"/>
+  <text id="t104" class="cou" x="940" y="578" font-size="24" text-anchor="middle" font-weight="700"></text>
+  <path id="l104" class="ln" d="M1062 418 Q1074 452 1060 480" stroke-width="1.2"/>
+  <text id="n104" class="cou" x="1038" y="410" font-size="26"></text>
+
+  <!-- 114 arrow -->
+  <path id="a114" class="ln" d="M1104 572 H1456"/>
+  <path id="h114" d="M1456 572 L1436 562 L1436 582Z" fill="#141414"/>
+  <text id="n114" class="cou" x="1254" y="550" font-size="26"></text>
+
+  <!-- 106 config: three fields, exploded along a dotted axis -->
+  <path id="ax106" class="ln" d="M1580 430 V720" stroke-dasharray="2 6" stroke-width="1.4"/>
+  <g id="f1"><rect x="1460" y="506" width="240" height="44" fill="#F3EEDF"/><path class="ln fpath" d="M1460 506 H1700 V550 H1460 Z"/><text class="cou ft" x="1478" y="535" font-size="20"></text></g>
+  <g id="f2"><rect x="1460" y="550" width="240" height="44" fill="#F3EEDF"/><path class="ln fpath" d="M1460 550 H1700 V594 H1460 Z"/><text class="cou ft" x="1478" y="579" font-size="20"></text></g>
+  <g id="f3"><rect x="1460" y="594" width="240" height="44" fill="#F3EEDF"/><path class="ln fpath" d="M1460 594 H1700 V638 H1460 Z"/><text class="cou ft" x="1478" y="623" font-size="20"></text></g>
+  <path id="l106" class="ln" d="M1740 440 Q1726 470 1702 488" stroke-width="1.2"/>
+  <text id="n106" class="cou" x="1724" y="430" font-size="26"></text>
+
+  <!-- 110 database, 112 history: dashed = omitted -->
+  <path id="d110" class="dash" d="M860 662 Q820 720 752 752"/>
+  <path id="p110" class="dash" d="M630 760 A70 18 0 1 0 770 760 A70 18 0 1 0 630 760 M630 760 V826 A70 18 0 0 0 770 826 V760"/>
+  <text id="n110" class="cou" x="796" y="800" font-size="24"></text>
+  <path id="d112" class="dash" d="M1020 662 Q1060 720 1140 750"/>
+  <path id="p112" class="dash" d="M1190 742 A48 48 0 1 1 1189.9 742 M1190 790 V760 M1190 790 L1212 802"/>
+  <text id="n112" class="cou" x="1260" y="800" font-size="24"></text>
+  <path id="x110a" class="red" d="M612 736 L790 852"/><path id="x110b" class="red" d="M790 736 L612 852"/>
+  <path id="x112a" class="red" d="M1124 730 L1256 852"/><path id="x112b" class="red" d="M1256 730 L1124 852"/>
+  <path id="mark" class="red" d="M1146 222 H1622" stroke-width="2.4"/>
+  <text id="note" x="1672" y="228" font-family="Courier Prime" font-size="22" font-weight="700" fill="#B3261E" font-style="italic"></text>
+</svg>
+<div id="caps"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="../lab.js"></script>
+<script>
+document.fonts.ready.then(() => {
+  const tl = LAB.tl, C = LAB.cue, $ = (s) => document.querySelector(s), $$ = (s) => [...document.querySelectorAll(s)];
+  const SPEED = 1200; // px/s: constant, ruler-straight
+  // draw a solid stroke at constant speed; returns the end time
+  const draw = (el, t) => { const L = el.getTotalLength(), d = L / SPEED; el.style.strokeDasharray = L;
+    tl.fromTo(el, { strokeDashoffset: L, autoAlpha: 0 }, { strokeDashoffset: 0, autoAlpha: 1, duration: d, ease: "none"}, t);
+    return t + d; };
+  // dashed stroke drawn on through a mask copy of itself
+  let mk = 0;
+  const drawDashed = (el, t) => { const L = el.getTotalLength(), d = L / SPEED, id = "m" + mk++;
+    const NS = "http://www.w3.org/2000/svg", m = document.createElementNS(NS, "mask"), p = document.createElementNS(NS, "path");
+    m.id = id; m.setAttribute("maskUnits", "userSpaceOnUse"); m.setAttribute("x", 0); m.setAttribute("y", 0); m.setAttribute("width", 1920); m.setAttribute("height", 896);
+    p.setAttribute("d", el.getAttribute("d")); p.setAttribute("fill", "none"); p.setAttribute("stroke", "#fff"); p.setAttribute("stroke-width", 10); p.style.strokeDasharray = L;
+    m.appendChild(p); $("defs").appendChild(m); el.setAttribute("mask", `url(#${id})`);
+    tl.fromTo(p, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: d, ease: "none" }, t); return t + d; };
+  // Courier types on in character steps
+  const type = (el, text, t, cps = 45) => { const o = { n: 0 }; const set = () => { el.textContent = text.slice(0, Math.floor(o.n)); };
+    set(); tl.fromTo(o, { n: 0 }, { n: text.length, duration: text.length / cps, ease: "none", onUpdate: set }, t); return t + text.length / cps; };
+  const show = (sel, t) => tl.fromTo(sel, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 }, t);
+
+  // 1. sheet header + figure title
+  type($("#hd1"), "U.S. Patent", 0, 60); type($("#hd2"), "Oct. 16, 2026", 0.1, 60);
+  type($("#hd3"), "Sheet 3 of 7", 0.2, 60); type($("#hd4"), "US 11,402,104 B2", 0.25, 60);
+  draw($("#hrule"), 0.05);
+  type($("#fig"), "FIG. 1", C("biggest"), 24);
+  type($("#figsub"), "CONFIGURATION SYSTEM — PRESENT INVENTION", C("change"), 60);
+
+  // 2. 104 build config + claim
+  draw($("#p104"), C("build"));
+  type($("#clh"), "CLAIMS", C("build"), 40);
+  type($("#cl1"), "1. A method (104) of building a configuration,", C("build") + 0.15, 48);
+  draw($("#l104"), C("config")); type($("#n104"), "104", C("config") + 0.06, 20);
+  show("#labelbg", C("config") + 0.25); type($("#t104"), "BUILD CONFIG", C("config") + 0.25, 40);
+  tl.fromTo("#hrect", { attr: { width: 0 } }, { attr: { width: 318 }, duration: 0.5, ease: "none" }, C("pure"));
+  type($("#cl2"), "   wherein said method is a pure function;", C("pure"), 50);
+  draw($("#sigrule"), C("function"));
+  type($("#sig"), "buildConfig(snap: DeviceSnapshot): DeviceConfig", C("function") + 0.1, 52);
+
+  // 3. 102 snapshot goes in along 108
+  let e = draw($("#p102"), C("snapshot")); draw($("#p102a"), C("snapshot") + 0.2); draw($("#p102b"), C("snapshot") + 0.35);
+  draw($("#l102"), C("snapshot") + 0.45); type($("#n102"), "102", C("snapshot") + 0.5, 20);
+  type($("#cl3"), "   receiving a snapshot (102);", C("snapshot"), 48);
+  e = draw($("#a108"), C("goes")); show("#h108", e); type($("#n108"), "108", C("in"), 20);
+
+  // 4. 106 config comes out along 114, fields explode on "out"
+  $$(".fpath").forEach((p, i) => draw(p, C("config", 2) + i * 0.08));
+  show(["#f1 rect", "#f2 rect", "#f3 rect"], C("config", 2));
+  ["id", "sensors[]", "calibration"].forEach((s, i) => type($$(".ft")[i], s, C("config", 2) + 0.3 + i * 0.08, 40));
+  draw($("#l106"), C("config", 2) + 0.2); type($("#n106"), "106", C("config", 2) + 0.25, 20);
+  type($("#cl4"), "   producing a configuration (106);", C("config", 2), 48);
+  e = draw($("#a114"), C("comes")); show("#h114", e); type($("#n114"), "114", C("comes") + 0.15, 20);
+  draw($("#ax106"), C("out"));
+  tl.fromTo("#f1", { y: 0 }, { y: -46, duration: 0.4, ease: "none" }, C("out") + 0.1);
+  tl.fromTo("#f3", { y: 0 }, { y: 46, duration: 0.4, ease: "none" }, C("out") + 0.1);
+
+  // 5. omitted parts 110 / 112, struck in examiner red
+  type($("#cl5"), "   and omitting a database (110) and history (112).", C("no"), 55);
+  drawDashed($("#d110"), C("no")); drawDashed($("#p110"), C("no") + 0.1);
+  type($("#n110"), "110  OMITTED", C("database"), 40);
+  draw($("#x110a"), C("database") + 0.12); draw($("#x110b"), C("database") + 0.32);
+  drawDashed($("#d112"), C("no", 2)); drawDashed($("#p112"), C("no", 2) + 0.08);
+  type($("#n112"), "112  OMITTED", C("history"), 40);
+  draw($("#x112a"), C("history") + 0.12); draw($("#x112b"), C("history") + 0.32);
+  // examiner's last mark: underline the limitation that matters
+  draw($("#mark"), 9.0); type($("#note"), "allowed", 9.4, 30);
+
+  LAB.captions($("#caps"));
+  LAB.done();
+  const seek = window.__seek; window.__seek = (t) => { seek(t); }; // return nothing: Playwright would try to serialise the timeline
+});
+</script>
+</body></html>

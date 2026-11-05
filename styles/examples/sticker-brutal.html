@@ -1,0 +1,132 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Sticker Brutal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@700&display=block" rel="stylesheet">
+<style>
+:root{--cv:#FFF4D6;--y:#FFD23F;--pk:#FF6B9A;--bl:#4D96FF;--gr:#3DDC97;--rd:#FF4B3E}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--cv)}
+#stage{position:absolute;left:0;top:0;width:1920px;height:896px;overflow:hidden;background:var(--cv)}
+#world{position:absolute;inset:0}
+.dots{position:absolute;inset:0;background-image:radial-gradient(#0000001A 3px,transparent 3.5px);background-size:40px 40px;background-position:20px 20px}
+.card{position:absolute;box-sizing:border-box;border:4px solid #000;border-radius:12px;--sh:8;box-shadow:calc(var(--sh)*1px) calc(var(--sh)*1px) 0 #000}
+.disp{font-family:'Archivo Black';line-height:1;letter-spacing:-.01em;color:#000}
+.panel{position:absolute;inset:0}
+.bar{height:64px;border-bottom:4px solid #000;display:flex;align-items:center;gap:14px;padding:0 22px;background:var(--y);border-radius:8px 8px 0 0}
+.dot{width:22px;height:22px;border:4px solid #000;border-radius:50%;background:#fff}
+.bar span{font:700 26px 'Space Mono';margin-left:12px}
+.code{font:700 62px/96px 'Space Mono';color:#000;padding:26px 44px;white-space:pre;margin:0}
+.code .c{color:#7A6F55}
+.tok{position:relative;display:inline-block;z-index:0}
+.hl{position:absolute;left:-8px;right:-8px;top:12px;bottom:8px;background:var(--y);border:4px solid #000;z-index:-1;transform-origin:left center}
+.stamp{position:absolute;box-sizing:border-box;border:6px solid #000;border-radius:10px;--sh:8;box-shadow:calc(var(--sh)*1px) calc(var(--sh)*1px) 0 #000;text-align:center;padding:14px 34px 16px}
+.lbl{font:700 30px 'Space Grotesk';text-transform:uppercase;letter-spacing:.08em}
+#cap{position:absolute;left:0;top:896px;width:1920px;height:184px;background:var(--cv);border-top:4px solid #000;box-sizing:border-box}
+.cap-group{position:absolute;left:50%;top:40px;transform:translateX(-50%);white-space:nowrap;font:400 54px 'Archivo Black';background:#fff;border:4px solid #000;box-shadow:8px 8px 0 #000;border-radius:12px;padding:12px 34px 16px;visibility:hidden}
+.cap-word{opacity:calc(.25 + .75*var(--on,0))}
+</style></head><body>
+<div id="stage"><div id="world">
+  <div class="dots"></div>
+
+  <!-- 1 -->
+  <div class="card disp" id="nowCard" style="left:150px;top:120px;background:#fff;font-size:64px;padding:16px 30px 20px">NOW THE</div>
+  <div class="card disp" id="bigCard" style="left:150px;top:250px;background:var(--y);font-size:220px;padding:22px 44px 34px">BIGGEST</div>
+  <div class="card disp" id="chgCard" style="left:640px;top:530px;background:var(--pk);font-size:220px;padding:22px 44px 34px">CHANGE!</div>
+
+  <!-- 2 -->
+  <div class="panel" id="p2" style="background:var(--bl)"><div class="dots" style="opacity:.6"></div></div>
+  <div class="card" id="codeCard" style="left:150px;top:110px;width:1180px;background:#fff">
+    <div class="bar"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>config/build.ts</span></div>
+<pre class="code"><span style="color:#7A6F55">export function</span>
+<span class="tok"><span class="hl" id="hFn"></span>buildConfig</span>(snapshot) {
+  <span class="c">// <span class="tok"><span class="hl" id="hPure"></span>pure</span>: no side effects</span>
+  return config
+}</pre>
+  </div>
+  <div class="stamp" id="pureStamp" style="left:1290px;top:300px;background:var(--gr)"><div class="disp" style="font-size:150px">PURE</div><div class="lbl" style="margin-top:6px">function</div></div>
+
+  <!-- 3 -->
+  <div class="panel" id="p3" style="background:var(--cv)"><div class="dots"></div></div>
+  <svg id="arIn" style="position:absolute;left:470px;top:225px;overflow:visible" width="260" height="80"><path d="M0 40 H100 V20 H200" fill="none" stroke="#000" stroke-width="10" stroke-linejoin="miter"/><polygon class="head" points="196,0 244,20 196,40" fill="#000"/></svg>
+  <svg id="arOut" style="position:absolute;left:1240px;top:225px;overflow:visible" width="260" height="80"><path d="M0 20 H100 V40 H200" fill="none" stroke="#000" stroke-width="10"/><polygon class="head" points="196,20 244,40 196,60" fill="#000"/></svg>
+  <div class="card" id="fnCard" style="left:700px;top:140px;width:540px;height:240px;background:#fff">
+    <div class="bar" style="background:var(--pk)"><div class="dot"></div><div class="dot"></div><div class="dot"></div><span>pure ƒ</span></div>
+    <div style="font:700 56px 'Space Mono';text-align:center;padding-top:46px">buildConfig()</div>
+  </div>
+  <div class="card" id="snapCard" style="left:100px;top:180px;width:370px;height:160px;background:var(--bl);display:flex;align-items:center;justify-content:center"><div><div class="lbl" style="font-size:22px">input</div><div class="disp" style="font-size:56px">snapshot</div></div></div>
+  <div class="card" id="cfgCard" style="left:1490px;top:180px;width:330px;height:160px;background:var(--gr);display:flex;align-items:center;justify-content:center"><div><div class="lbl" style="font-size:22px">output</div><div class="disp" style="font-size:62px">config</div></div></div>
+
+  <div class="card" id="dbCard" style="left:200px;top:500px;width:680px;height:300px;background:#fff;padding:40px 46px"><div class="lbl" style="font-size:26px">db.query()</div><div class="disp" style="font-size:104px;margin-top:20px">DATABASE</div></div>
+  <div class="card" id="hiCard" style="left:1040px;top:500px;width:680px;height:300px;background:#fff;padding:40px 46px"><div class="lbl" style="font-size:26px">prev state</div><div class="disp" style="font-size:104px;margin-top:20px">HISTORY</div></div>
+  <div class="stamp" id="noDb" style="left:790px;top:425px;background:var(--rd)"><div class="disp" style="font-size:120px;color:#fff;-webkit-text-stroke:4px #000;paint-order:stroke fill">NO</div></div>
+  <div class="stamp" id="noHi" style="left:1600px;top:425px;background:var(--rd)"><div class="disp" style="font-size:120px;color:#fff;-webkit-text-stroke:4px #000;paint-order:stroke fill">NO</div></div>
+</div></div>
+<div id="cap"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="../lab.js"></script>
+<script>
+document.fonts.ready.then(() => {
+  const { cue } = LAB, $ = (s) => document.querySelector(s);
+  const g = gsap.timeline({ paused: true });   // graphics: sampled on twos (12 fps)
+  const OB = "back.out(2.5)";
+  const slam = (el, t, from, rot = 0) => {
+    g.fromTo(el, { ...from, rotation: rot + (from.rotation ?? 0), "--sh": 0, autoAlpha: 1 }, { x: 0, y: 0, scale: 1, rotation: rot, duration: 0.42, ease: OB }, t);
+    g.fromTo(el, { "--sh": 0 }, { "--sh": 8, duration: 0.09, ease: "none", immediateRender: false }, t + 0.25);
+  };
+  const stamp = (el, t, rot = -8) => {
+    g.fromTo(el, { autoAlpha: 0, scale: 1.4, rotation: rot - 10, "--sh": 0 }, { autoAlpha: 1, scale: 1, rotation: rot, "--sh": 8, duration: 0.25, ease: "back.out(3)" }, t);
+    g.to(el, { keyframes: { rotation: [rot + 3, rot - 2, rot] }, duration: 0.25, ease: "none" }, t + 0.25);
+  };
+  const jolt = (t, a = 6) => g.to("#world", { keyframes: { x: [a, -a, a / 2, 0], y: [-a, a, 0, 0] }, duration: 0.25, ease: "none" }, t);
+  const wipePanel = (el, t) => g.fromTo(el, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.33, ease: "power3.inOut" }, t);
+  const hl = (el, t) => g.fromTo(el, { scaleX: 0 }, { scaleX: 1, duration: 0.17, ease: "power2.out" }, t);
+  const arrow = (svg, t, d) => {
+    const p = svg.querySelector("path"), L = p.getTotalLength();
+    g.fromTo(p, { strokeDasharray: L, strokeDashoffset: L }, { strokeDashoffset: 0, duration: d, ease: "steps(3)" }, t);
+    g.fromTo(svg.querySelector(".head"), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.01 }, t + d);
+  };
+
+  // 1 — BIGGEST CHANGE
+  slam("#nowCard", cue("Now"), { y: -400 }, -2);
+  slam("#bigCard", cue("biggest"), { x: -1500 }, 0);
+  slam("#chgCard", cue("change"), { x: 1500, rotation: 12 }, -4);
+  jolt(cue("change") + 0.3);
+
+  // 2 — blue panel, code card, PURE stamp
+  wipePanel("#p2", cue("Build"));
+  slam("#codeCard", cue("Build") + 0.12, { y: -1000 }, 0);
+  hl("#hFn", cue("config"));
+  g.to("#codeCard", { keyframes: { rotation: [-1.2, 1, 0] }, duration: 0.25, ease: "none" }, cue("config"));
+  hl("#hPure", cue("pure"));
+  stamp("#pureStamp", cue("function"), -8);
+  jolt(cue("function") + 0.1, 5);
+
+  // 3 — snapshot in, config out
+  const A = cue(10);
+  wipePanel("#p3", A);
+  slam("#fnCard", A + 0.1, { y: -700 }, 0);
+  slam("#snapCard", cue("snapshot"), { x: -700 }, -3);
+  arrow($("#arIn"), cue("goes"), 0.25);
+  g.to("#snapCard", { keyframes: { x: [60, -10, 0], scaleX: [0.85, 1.04, 1] }, duration: 0.33, ease: "none" }, cue("in"));
+  g.to("#fnCard", { keyframes: { scale: [1.08, 0.97, 1] }, duration: 0.33, ease: "none" }, cue("in") + 0.2);
+  g.to("#fnCard", { keyframes: { rotation: [-3, 3, -1.5, 0] }, duration: 0.33, ease: "none" }, cue("config", 2));
+  arrow($("#arOut"), cue("comes"), 0.25);
+  g.fromTo("#cfgCard", { autoAlpha: 1, x: -500, scale: 0, rotation: -20, "--sh": 0 }, { x: 0, scale: 1, rotation: 3, duration: 0.42, ease: OB }, cue("out"));
+  g.fromTo("#cfgCard", { "--sh": 0 }, { "--sh": 8, duration: 0.09, ease: "none", immediateRender: false }, cue("out") + 0.25);
+
+  // No database / No history
+  slam("#dbCard", cue("No"), { y: -900 }, -1.5);
+  stamp("#noDb", cue("database"), -10);
+  jolt(cue("database") + 0.08);
+  slam("#hiCard", cue("No", 2), { y: -900 }, 1.5);
+  stamp("#noHi", cue("history"), 8);
+  jolt(cue("history") + 0.08);
+
+  LAB.captions($("#cap"));
+  LAB.done();
+  g.seek(0, false);
+  // graphics on twos; also stops the harness returning the timeline object (Playwright hangs serialising it)
+  const s = window.__seek; window.__seek = (t) => { s(t); g.seek(Math.floor(t * 12) / 12, false); };
+});
+</script>
+</body></html>

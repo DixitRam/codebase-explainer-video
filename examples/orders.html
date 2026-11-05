@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Orders Explainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=block" rel="stylesheet">
+<link rel="stylesheet" href="engine.css">
+<style>
+  /* "transaction" cards: table/column on the left, what gets written on the right */
+  .tx { left: 260px; top: 200px; width: 1400px; }
+  .tx .row span:first-child { font: 700 22px JetBrains Mono; color: var(--fg); }
+  .tx .row span:last-child { font: 400 21px Inter; color: #b9c2cf; }
+  .tx .row.check span:first-child { color: var(--orange); }
+</style>
+<script>
+  // The map every chapter returns to. Centres on a 1920×1080 canvas; node boxes are 240×120.
+  window.DIAGRAM = {
+    nodes: {
+      cu: [460, 360, 'Customer', 'who buys', 'sky', 'user'],
+      ca: [840, 360, 'Cart', 'what they want', 'violet', 'box'],
+      pr: [460, 690, 'Product', 'what we sell', 'gold', 'file'],
+      st: [840, 690, 'Stock', 'what we have', 'teal', 'db'],
+      or: [1460, 525, 'Order', 'where they meet', 'magenta', 'zap'],
+    },
+    links: { 'cu-ca': ['cu', 'ca'], 'pr-st': ['pr', 'st'], 'ca-or': ['ca', 'or'], 'st-or': ['st', 'or'] },
+    labels: [],
+    groups: [[300, 222, 700, 246, 'Customer side', 'sky'], [300, 552, 700, 246, 'Catalog side', 'gold']],
+  };
+</script>
+</head>
+<body>
+<div class="abs brand">ACME · CODEBASE TOUR</div>
+
+<!-- S0 hook: visible on frame 0, so it is also the thumbnail -->
+<div id="t1" class="abs" style="left:160px; top:330px"><div class="kicker">ACME ADMIN · ORDERS</div></div>
+<div id="t2" class="abs big" style="left:150px; top:400px">A cart checks out.</div>
+<div id="t3" class="abs big hide" style="left:150px; top:540px">Now it's <em style="--accent:var(--magenta)">an order.</em></div>
+
+<!-- detail card (in screen space, next to the zoomed node) -->
+<div id="c-or" class="abs card hide" style="left:820px; top:250px; width:900px">
+  <h3>Order = cart + reserved stock</h3>
+  <div class="sub">One row per checkout.</div>
+  <div class="row hide"><span>Order ID</span><span>ORD-1042</span></div>
+  <div class="row hide"><span>Customer</span><span>CU-77</span></div>
+  <div class="row hide"><span>Status</span><span class="empty">pending payment</span></div>
+</div>
+
+<!-- backend writes, one row per SQL write, in order -->
+<div id="tx" class="abs card tx hide">
+  <h3>POST /orders → createOrder</h3>
+  <div class="sub">src/db/orders.ts · one transaction</div>
+  <div class="row check hide"><span>check</span><span>"Cart is empty" → 400</span></div>
+  <div class="row hide"><span>ORDERS</span><span>← new row, status 'pending'</span></div>
+  <div class="row hide"><span>STOCK.RESERVED</span><span>← + quantity per line</span></div>
+</div>
+
+<!-- code card with a hand-drawn underline (ours) -->
+<div id="k1" class="abs code hide">
+  <div class="file"><span class="ours">ours</span>&nbsp; src/db/orders.ts · createOrder</div><span class="lang">SQL</span>
+  <pre><span class="k">UPDATE</span> <span class="n">"STOCK"</span>
+<span class="k">SET</span> <span class="n">"RESERVED"</span> = <span class="n">"RESERVED"</span> + qty
+<span class="k">WHERE</span> <span class="n">"PRODUCT_ID"</span> = id <span class="k">AND</span> <span id="guard" class="hl"><span class="n">"ON_HAND"</span> - <span class="n">"RESERVED"</span> &gt;= qty</span></pre>
+  <svg class="abs uline" style="left:500px; top:200px" width="560" height="24"><path id="u1" d="M4 12 C 150 20, 350 4, 550 12" fill="none" stroke="#ff8a1f" stroke-width="7" stroke-linecap="round" stroke-dasharray="560" stroke-dashoffset="560"/></svg>
+  <div id="k1n" class="abs tag hide" style="left:1110px; top:150px">never oversells</div>
+</div>
+
+<!-- third-party / unmaintained code: always a grey black box, inputs and outputs only -->
+<div id="bb" class="abs blackbox hide" style="left:260px; top:220px; width:1400px">
+  <h3>vendor/tax.ts · computeTax()</h3>
+  <div class="sub">not maintained by us · black box</div>
+  <div class="io">
+    <div class="bbl hide"><b>IN    </b> order lines, shipping address</div>
+    <div class="bbl hide"><b>WRITES</b> ORDERS.TAX</div>
+  </div>
+</div>
+
+<!-- end card -->
+<div id="e1" class="abs hide" style="left:160px; top:330px"><div class="kicker">THAT'S ORDERS</div></div>
+<div id="e2" class="abs big hide" style="left:150px; top:400px">Next: <em style="--accent:var(--cyan)">Payments.</em></div>
+
+<script src="engine.js"></script>
+<script>
+buildDiagram();
+const rowsIn = (sel, t, step = 0.6) => $$(sel).forEach((r, i) => fadeIn(r, t + i * step, 0.4, 10));
+
+// S0 hook
+slideIn('#t3', 0.45);
+fadeOut('#t1, #t2, #t3', 4.6);
+
+// S1 map: both sides meet at Order
+diagramIn(5.0);
+flow('ca-or', 7.0); flow('st-or', 8.6); stream('cu-ca', 7.2, 2.2, 3);
+light('or', 9.8);
+
+// S2 zoom into Order, card appears
+dim(['cu', 'ca', 'pr', 'st'], 10.6);
+cam(10.8, 1.0, camNode('or', 1.5, 520, 540));
+fadeIn('#c-or', 11.6); rowsIn('#c-or .row', 12.0, 0.5);
+fadeOut('#c-or', 15.4); fadeOut('#stage', 15.5);
+
+// S3 backend writes
+blurIn('#tx', 16.0); rowsIn('#tx .row', 16.8, 0.9);
+fadeOut('#tx', 21.5);
+
+// S4 our code
+blurIn('#k1', 22.0); hl('#guard', 23.0, 'var(--gold)'); draw('#u1', 23.2); fadeIn('#k1n', 23.9, 0.4, 10);
+fadeOut('#k1', 27.5);
+
+// S5 black box
+blurIn('#bb', 28.0); rowsIn('#bb .bbl', 28.8, 0.9);
+fadeOut('#bb', 32.5);
+
+// S6 end card
+fadeIn('#e1', 33.0); slideIn('#e2', 33.3);
+
+finish(37);
+</script>
+</body>
+</html>

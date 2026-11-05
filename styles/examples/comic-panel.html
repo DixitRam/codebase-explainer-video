@@ -1,0 +1,188 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Comic Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@700&family=Space+Mono:wght@700&display=block" rel="stylesheet">
+<style>
+  :root{--paper:#FBF6E9;--ink:#111;--cy:#00A3E0;--mg:#E5007E;--yl:#FFD400}
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--paper)}
+  #view{position:absolute;left:0;top:0;width:1920px;height:896px;overflow:hidden;background:#EFE8D6}
+  #page{position:absolute;left:0;top:0;width:1920px;height:896px;transform-origin:0 0}
+  .panel{position:absolute;overflow:hidden;background:var(--paper)}
+  .panel::before{content:"";position:absolute;inset:-150%;transform:rotate(15deg);opacity:var(--dop,.5);
+    background:radial-gradient(circle,var(--dc,var(--cy)) 2.1px,transparent 2.6px) 0 0/10px 10px}
+  .panel svg{position:absolute;left:0;top:0;overflow:visible}
+  .cap{position:absolute;background:#FFF3B0;border:4px solid var(--ink);padding:8px 16px 6px;font-family:"Comic Neue",cursive;font-weight:700;
+       font-size:30px;line-height:1.1;text-transform:uppercase;color:var(--ink);letter-spacing:.5px;white-space:nowrap}
+  .sfx{position:absolute;font-family:Bangers,cursive;color:var(--yl);-webkit-text-stroke:5px var(--ink);paint-order:stroke fill;letter-spacing:4px;
+       text-shadow:6px 6px 0 var(--mg),-3px -2px 0 var(--cy),10px 10px 0 var(--ink);white-space:nowrap;line-height:1}
+  .balloon{position:absolute;background:#fff;border:5px solid var(--ink);font-family:"Space Mono",monospace;font-weight:700;font-size:28px;line-height:1.35;
+           padding:14px 22px;color:var(--ink);white-space:pre}
+  #borders{position:absolute;left:0;top:0;pointer-events:none}
+  #grain{position:absolute;left:0;top:0;pointer-events:none;mix-blend-mode:multiply}
+  #caps{position:absolute;left:0;top:896px;width:1920px;height:184px;display:grid;place-items:center;background:var(--paper)}
+  .cap-group{grid-area:1/1;background:#FFF3B0;border:5px solid var(--ink);box-shadow:8px 8px 0 var(--ink);padding:10px 34px 8px;
+             font-family:"Comic Neue",cursive;font-weight:700;font-size:48px;text-transform:uppercase;color:var(--ink);letter-spacing:1px}
+  .cap-word{opacity:calc(.28 + .72*var(--on,0))}
+</style></head>
+<body>
+<div id="view"><div id="page"></div></div>
+<svg id="grain" width="1920" height="896"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="3"/><feColorMatrix values="0 0 0 0 .45  0 0 0 0 .4  0 0 0 0 .3  0 0 0 .5 0"/></filter><rect width="1920" height="896" filter="url(#gr)" opacity=".18"/></svg>
+<div id="caps"></div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="../lab.js"></script>
+<script>
+const {tl, cue} = LAB;
+const page = document.getElementById('page');
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, cls, parent, html, style = {}) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; Object.assign(e.style, style); parent.appendChild(e); return e; };
+const svgIn = (parent, w, h, inner) => { const s = document.createElementNS(NS, 'svg'); s.setAttribute('width', w); s.setAttribute('height', h); s.innerHTML = inner; parent.appendChild(s); return s; };
+const px = v => v + 'px';
+// Ben-Day dots baked once into bitmaps (SVG <pattern> fills stall Chrome's rasteriser under transforms).
+const DOT = {};
+[['dY', '#FFD400', 3.3, 10, 15], ['dC', '#00A3E0', 3.1, 10, 75], ['dM', '#E5007E', 2.8, 9, 45], ['dK', '#8A8A8A', 2.4, 9, 45]].forEach(([k, col, r, pitch, ang]) => {
+  const c = document.createElement('canvas'); c.width = c.height = 640; const g = c.getContext('2d');
+  g.fillStyle = col; g.translate(320, 320); g.rotate(ang * Math.PI / 180);
+  for (let y = -480; y < 480; y += pitch) for (let x = -480; x < 480; x += pitch) { g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+  DOT[k] = c.toDataURL();
+});
+let clipN = 0;
+// dot fill clipped to a shape; shape = svg markup of the outline, (x,y) = its top-left
+const dots = (shape, pat, x, y, op = 1) => { const id = 'k' + clipN++; return `<clipPath id="${id}">${shape}</clipPath><image href="${DOT[pat]}" x="${x}" y="${y}" width="640" height="640" opacity="${op}" clip-path="url(#${id})" transform="translate(2,2)"/>`; };
+const on12 = d => `steps(${Math.max(1, Math.round(d * 12))})`;   // inside-panel motion on twos
+// Panel slam: 3 frames, 1-frame overshoot.
+const slam = (e, t, s0 = 1.07) => tl.fromTo(e, {autoAlpha: 0, scale: s0}, {autoAlpha: 1, scale: 1, duration: .1, ease: 'back.out(5)'}, t);
+const pop = (e, t, rot) => tl.fromTo(e, {autoAlpha: 0, scale: .3, rotation: rot - 14}, {autoAlpha: 1, scale: 1, rotation: rot, duration: .25, ease: 'steps(3)'}, t);
+
+// ---- page grid ----
+const P = {
+  t: {x: 28, y: 24, w: 1864, h: 230, dc: 'var(--yl)', dop: .55},
+  a: {x: 28, y: 272, w: 604, h: 600, dc: 'var(--cy)', dop: .32},
+  b: {x: 650, y: 272, w: 604, h: 600, dc: 'var(--mg)', dop: .18},
+  c: {x: 1272, y: 272, w: 620, h: 600, dc: 'var(--cy)', dop: .32},
+  i1: {x: 1150, y: 12, w: 330, h: 236, dc: '#9a9a9a', dop: .35, rot: -2.5},
+  i2: {x: 1525, y: 20, w: 350, h: 232, dc: '#9a9a9a', dop: .35, rot: 2},
+};
+const pan = {};
+for (const [k, p] of Object.entries(P)) {
+  const d = el('div', 'panel', page, null, {left: px(p.x), top: px(p.y), width: px(p.w), height: px(p.h), transform: `rotate(${p.rot || 0}deg)`});
+  d.style.setProperty('--dc', p.dc); d.style.setProperty('--dop', p.dop);
+  pan[k] = d;
+}
+// ink borders: main grid draws on at "Now"; insets get their own border inside
+const B = svgIn(page, 1920, 896, '');
+B.id = 'borders';
+const rects = {};
+for (const [k, p] of Object.entries(P)) {
+  if (k.startsWith('i')) { pan[k].style.outline = '6px solid #111'; pan[k].style.outlineOffset = '-3px'; pan[k].style.boxShadow = '10px 10px 0 #111'; continue; }
+  const r = document.createElementNS(NS, 'rect');
+  Object.entries({x: p.x, y: p.y, width: p.w, height: p.h, fill: 'none', stroke: '#111', 'stroke-width': 6}).forEach(([a, v]) => r.setAttribute(a, v));
+  B.appendChild(r); rects[k] = r;
+}
+const fx = el('div', null, page, null, {position: 'absolute', inset: 0});   // SFX layer that can break panels
+// insets live above borders
+['i1', 'i2'].forEach(k => fx.before(pan[k]));
+Object.values(rects).forEach((r, i) => {
+  const L = 2 * (+r.getAttribute('width') + +r.getAttribute('height'));
+  r.style.strokeDasharray = L + ' ' + (L + 10);
+  tl.fromTo(r, {strokeDashoffset: L + 6}, {strokeDashoffset: 0, duration: .45, ease: 'power2.out'}, cue('now') + i * .06);
+});
+
+// ---- art helpers ----
+function cube(x, y, w, h, d, label, fs, grey) {
+  const q = d * .62, f = grey ? ['dK', 'dK', 'dK'] : ['dY', 'dC', 'dM'];
+  const front = `${x},${y} ${x + w},${y} ${x + w},${y + h} ${x},${y + h}`;
+  const topF = `${x},${y} ${x + d},${y - q} ${x + w + d},${y - q} ${x + w},${y}`;
+  const side = `${x + w},${y} ${x + w + d},${y - q} ${x + w + d},${y + h - q} ${x + w},${y + h}`;
+  const face = (pts, pat) => `<polygon points="${pts}" fill="#FBF6E9"/>` + dots(`<polygon points="${pts}"/>`, pat, x - 4, y - q - 4);
+  return `<g>${face(front, f[0])}${face(topF, f[1])}${face(side, f[2])}
+    <g fill="none" stroke="#111" stroke-width="6" stroke-linejoin="round"><polygon points="${front}"/><polygon points="${topF}"/><polygon points="${side}"/></g>
+    <ellipse cx="${x + w / 2 + d / 2}" cy="${y - q / 2}" rx="${w * .28}" ry="${q * .22}" fill="#111"/>
+    <text x="${x + w / 2}" y="${y + h / 2 + fs * .35}" text-anchor="middle" font-family="Space Mono" font-weight="700" font-size="${fs}" fill="#111">${label}</text></g>`;
+}
+function card(w, h, label, pat) {
+  return `<polygon points="0,0 ${w - 34},0 ${w},34 ${w},${h} 0,${h}" fill="#fff"/>${dots(`<polygon points="0,0 ${w - 34},0 ${w},34 ${w},${h} 0,${h}"/>`, pat, 0, 0, .55)}
+    <polygon points="0,0 ${w - 34},0 ${w},34 ${w},${h} 0,${h}" fill="none" stroke="#111" stroke-width="5" stroke-linejoin="round"/>
+    <polyline points="${w - 34},0 ${w - 34},34 ${w},34" fill="none" stroke="#111" stroke-width="4"/>
+    ${[0, 1, 2].map(i => `<line x1="18" x2="${w - 24 - (i % 2) * 30}" y1="${62 + i * 26}" y2="${62 + i * 26}" stroke="#111" stroke-width="5" stroke-linecap="round"/>`).join('')}
+    <text x="${w / 2}" y="${h - 18}" text-anchor="middle" font-family="Space Mono" font-weight="700" font-size="22" fill="#111">${label}</text>`;
+}
+const streaks = (x, y, n, len) => Array.from({length: n}, (_, i) => `<line x1="${x - len + (i % 2) * 40}" x2="${x - 12}" y1="${y + i * 26}" y2="${y + i * 26}" stroke="#111" stroke-width="${i % 2 ? 4 : 6}" stroke-linecap="round"/>`).join('');
+function burst(cx, cy, r0, r1, n) {
+  let s = '';
+  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2 + (i % 3) * .05, rr = r0 + (i % 4) * 18; s += `<line x1="${cx + Math.cos(a) * rr}" y1="${cy + Math.sin(a) * rr}" x2="${cx + Math.cos(a) * r1}" y2="${cy + Math.sin(a) * r1}" stroke="#111" stroke-width="${i % 2 ? 5 : 9}" stroke-linecap="round"/>`; }
+  return s;
+}
+const cap = (parent, text, x, y, t, side = 'left') => { const c = el('div', 'cap', parent, text, {[side]: px(x), top: px(y)}); slam(c, t, 1.12); return c; };
+
+// ---- panel T: title strip ----
+cap(pan.t, 'Meanwhile, in build-config…', 22, 158, cue('now'));
+const tb = svgIn(pan.t, 1864, 230, burst(850, 112, 120, 520, 40)); tl.fromTo(tb, {autoAlpha: 0, scale: .6, transformOrigin: '850px 112px'}, {autoAlpha: 1, scale: 1, duration: .17, ease: 'steps(2)'}, cue('change'));
+const big = el('div', 'sfx', fx, 'BIG CHANGE!', {fontSize: '128px', left: '520px', top: '68px'});
+pop(big, cue('change'), -6);
+
+// ---- panel A: the function, PURE ----
+const ab = svgIn(pan.a, 604, 600, burst(330, 330, 230, 560, 36));
+tl.fromTo(ab, {autoAlpha: 0}, {autoAlpha: 1, duration: .1, ease: 'steps(1)'}, cue('pure'));
+const ac = svgIn(pan.a, 604, 600, cube(150, 300, 290, 180, 96, 'buildConfig()', 31));
+tl.fromTo(ac, {autoAlpha: 0, y: 70, scale: .9, transformOrigin: '300px 400px'}, {autoAlpha: 1, y: 0, scale: 1, duration: .34, ease: on12(.34)}, cue('build') + .35);
+cap(pan.a, 'buildConfig() is a…', 18, 18, cue('config'));
+cap(pan.a, '…pure function.', 18, 532, cue('function'), 'right');
+const pure = el('div', 'sfx', fx, 'PURE!', {fontSize: '150px', left: '300px', top: '330px'});
+pop(pure, cue('pure'), -8);
+
+// ---- panel B: snapshot goes in ----
+const bc = svgIn(pan.b, 604, 600, cube(330, 330, 200, 150, 64, 'buildConfig()', 21));
+slam(bc, cue('snapshot') - .05, 1.04);
+cap(pan.b, 'A snapshot goes in…', 18, 18, cue('snapshot'));
+const snap = svgIn(pan.b, 604, 600, `<g id="sn">${streaks(-8, 40, 5, 150)}${card(160, 200, 'snapshot', 'dM')}</g>`);
+const sn = snap.querySelector('#sn');
+tl.fromTo(sn, {x: -260, y: 220, rotation: -8, svgOrigin: '80 100'}, {x: 60, y: 210, rotation: -4, duration: .5, ease: on12(.5)}, cue('snapshot'));
+tl.fromTo(sn, {x: 60, y: 210, scale: 1, rotation: -4}, {x: 360, y: 250, scale: .12, rotation: 6, duration: .4, ease: on12(.4), immediateRender: false}, cue('in'));
+tl.to(sn, {autoAlpha: 0, duration: .01}, cue('in') + .4);
+const fwip = el('div', 'sfx', fx, 'FWOOMP!', {fontSize: '104px', left: '930px', top: '360px'});
+pop(fwip, cue('in'), 7);
+
+// ---- panel C: config comes out ----
+const cc = svgIn(pan.c, 620, 600, cube(44, 330, 200, 150, 64, 'buildConfig()', 21));
+slam(cc, cue('config', 2) - .05, 1.04);
+const outC = svgIn(pan.c, 620, 600, `<g id="cf">${streaks(-6, 50, 5, 96)}${card(170, 210, 'config', 'dC')}</g>`);
+const cf = outC.querySelector('#cf');
+tl.fromTo(cf, {x: 140, y: 300, scale: .15, autoAlpha: 0, svgOrigin: '0 100'}, {x: 404, y: 278, scale: 1, autoAlpha: 1, duration: .34, ease: on12(.34)}, cue('comes'));
+const bal = el('div', 'balloon', pan.c, '{\n  sensors: [ … ],\n  calib:   [ … ]\n}', {left: '210px', top: '30px', height: '190px', boxSizing: 'border-box'});
+const tail = svgIn(pan.c, 620, 600, '<polygon points="236,214 300,214 200,300" fill="#fff" stroke="#111" stroke-width="5" stroke-linejoin="round"/><line x1="242" y1="214" x2="294" y2="214" stroke="#fff" stroke-width="9"/>');
+[bal, tail].forEach(e => tl.fromTo(e, {autoAlpha: 0, scale: .7, transformOrigin: '30% 100%'}, {autoAlpha: 1, scale: 1, duration: .17, ease: 'steps(2)'}, cue('out')));
+cap(pan.c, '…a config comes out.', 18, 532, cue('config', 2), 'right');
+
+// ---- insets: no database, no history ----
+const x1 = '<g stroke="#E5007E" stroke-width="20" stroke-linecap="round"><line x1="40" y1="40" x2="210" y2="200"/><line x1="210" y1="40" x2="40" y2="200"/></g><g stroke="#111" stroke-width="4" fill="none"><line x1="40" y1="40" x2="210" y2="200"/><line x1="210" y1="40" x2="40" y2="200"/></g>';
+const db = `<g transform="translate(55,48)"><path d="M0,24 L0,124 A70,22 0 0 0 140,124 L140,24" fill="#FBF6E9"/>${dots('<path d="M0,24 L0,124 A70,22 0 0 0 140,124 L140,24"/>', "dK", 0, 0)}
+  <path d="M0,24 L0,124 A70,22 0 0 0 140,124 L140,24" fill="none" stroke="#111" stroke-width="6"/><path d="M0,64 A70,22 0 0 0 140,64" fill="none" stroke="#111" stroke-width="4"/>
+  <ellipse cx="70" cy="24" rx="70" ry="22" fill="#d9d4c6" stroke="#111" stroke-width="6"/></g>`;
+const clk = `<g transform="translate(125,120)"><circle r="78" fill="#FBF6E9"/>${dots('<circle r="78"/>', "dK", -80, -80)}<circle r="78" fill="none" stroke="#111" stroke-width="6"/>
+  <polyline points="0,-50 0,0 36,20" fill="none" stroke="#111" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+const i1a = svgIn(pan.i1, 330, 236, db), i1x = svgIn(pan.i1, 330, 236, x1);
+const i2a = svgIn(pan.i2, 350, 232, clk), i2x = svgIn(pan.i2, 350, 232, x1);
+[i1x, i2x].forEach(e => e.style.transform = 'translate(4px,-2px)');
+const c1 = el('div', 'cap', pan.i1, 'No<br>database.', {right: '10px', bottom: '12px', fontSize: '26px'});
+const c2 = el('div', 'cap', pan.i2, 'No<br>history.', {right: '10px', bottom: '12px', fontSize: '26px'});
+slam(pan.i1, cue('no'), 1.1); slam(pan.i2, cue('no', 2), 1.1);
+const stampX = (e, t) => tl.fromTo(e, {autoAlpha: 0, scale: 1.6, transformOrigin: '125px 120px'}, {autoAlpha: 1, scale: 1, duration: .17, ease: 'steps(2)'}, t);
+stampX(i1x, cue('database') + .05); stampX(i2x, cue('history') + .05);
+tl.fromTo([c1, c2][0], {autoAlpha: 0}, {autoAlpha: 1, duration: .01}, cue('database'));
+tl.fromTo(c2, {autoAlpha: 0}, {autoAlpha: 1, duration: .01}, cue('history'));
+
+// ---- camera: full page -> push into each panel -> pull back ----
+const clamp = (v, lo) => Math.min(0, Math.max(lo, v));   // never show past the page edge
+const focus = (p, S) => ({scale: S, x: clamp(960 - S * (p.x + p.w / 2), 1920 * (1 - S)), y: clamp(448 - S * (p.y + p.h / 2), 896 * (1 - S))});
+const cam = (to, t, d) => tl.to(page, {...to, duration: d, ease: 'power3.inOut'}, t);
+tl.set(page, {scale: 1, x: 0, y: 0}, 0);
+cam(focus(P.a, 1.4), cue('build'), .55);
+cam(focus(P.b, 1.4), cue('snapshot') - .3, .45);
+cam(focus(P.c, 1.4), cue('config', 2) - .3, .45);
+cam({scale: 1, x: 0, y: 0}, cue('no') - .15, .5);
+tl.fromTo(page, {scale: 1, x: 0, y: 0}, {scale: 1.025, x: -24, y: -6, duration: 9.8 - cue('no') - .4, ease: 'none', immediateRender: false}, cue('no') + .38);
+
+LAB.captions(document.getElementById('caps'));
+addEventListener('load', () => document.fonts.ready.then(() => LAB.done()));
+</script>
+</body></html>

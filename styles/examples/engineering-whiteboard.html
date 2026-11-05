@@ -1,0 +1,173 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Engineering Whiteboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@500;700&display=block" rel="stylesheet">
+<style>
+  :root{--board:#F4F2EC;--ink:#1E2226;--blue:#2F5DA8;--red:#D6452F;--hl:#FFE66D;--ghost:#E3E0D8}
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--board)}
+  #stage{position:absolute;left:0;top:0;width:1920px;height:896px;overflow:hidden}
+  #world{position:absolute;left:0;top:0;width:3840px;height:896px}
+  #world svg{position:absolute;left:0;top:0}
+  .smudge{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(200,195,183,.25),rgba(200,195,183,0));}
+  .t{position:absolute;white-space:pre;color:var(--ink);line-height:1}
+  .marker{font-family:"Permanent Marker",cursive}
+  .kalam{font-family:Kalam,cursive;font-weight:700}
+  .mono{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--blue)}
+  .hl{position:absolute;background:var(--hl);opacity:.55;mix-blend-mode:multiply;transform-origin:0 50%;border-radius:6px 14px 8px 12px}
+  #caps{position:absolute;left:0;top:896px;width:1920px;height:184px;display:grid;place-items:center}
+  #caps::before{content:"";position:absolute;left:160px;right:160px;top:0;height:2px;background:var(--ghost)}
+  .cap-group{grid-area:1/1;font-family:Kalam,cursive;font-weight:700;font-size:54px;color:var(--ink);letter-spacing:.5px}
+  .cap-word{opacity:calc(.3 + .7*var(--on,0))}
+</style></head>
+<body>
+<div id="stage"><div id="world">
+  <svg id="tex" width="3840" height="896"><filter id="sp"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .1  0 0 0 0 .1  0 0 0 -1.6 1.1"/></filter><rect width="3840" height="896" filter="url(#sp)" opacity=".05"/></svg>
+  <div class="smudge" style="left:180px;top:90px;width:520px;height:160px"></div>
+  <div class="smudge" style="left:1300px;top:620px;width:460px;height:140px"></div>
+  <div class="smudge" style="left:2260px;top:640px;width:600px;height:180px"></div>
+  <div class="smudge" style="left:3300px;top:60px;width:420px;height:130px"></div>
+  <svg id="ink" width="3840" height="896"></svg>
+  <div id="txt"></div>
+</div></div>
+<div id="caps"></div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+<script src="../lab.js"></script>
+<script>
+const {tl, cue} = LAB;
+const svg = document.getElementById('ink'), txt = document.getElementById('txt');
+const rc = rough.svg(svg);
+const INK = '#1E2226', BLUE = '#2F5DA8', RED = '#D6452F';
+const shapes = []; // each: array of 3 variant <g>
+const X0 = 1920;   // second board screen
+
+// Shape = 3 seeded Rough variants stacked; boil shows one at 8 fps.
+function shape(make, seed, o = {}) {
+  const opts = {stroke: INK, strokeWidth: 4, roughness: 1.4, bowing: 1.5, ...o};
+  const vs = [0, 1, 2].map(i => { const g = make({...opts, seed: seed + i}); svg.appendChild(g); return g; });
+  vs.forEach((g, i) => { g.style.display = i ? 'none' : ''; g.querySelectorAll('path').forEach(p => { p.style.strokeLinecap = 'round'; p.style.strokeLinejoin = 'round'; }); });
+  shapes.push(vs);
+  return vs;
+}
+// Stroke-draw: each variant's sub-paths drawn in sequence over [at, at+dur].
+function draw(vs, at, dur) {
+  vs.forEach(g => {
+    const ps = [...g.querySelectorAll('path')].filter(p => p.getAttribute('stroke') !== 'none');
+    const lens = ps.map(p => p.getTotalLength() + 2), sum = lens.reduce((a, b) => a + b, 0);
+    let acc = 0;
+    ps.forEach((p, i) => {
+      p.style.strokeDasharray = lens[i] + ' ' + (lens[i] + 40);
+      tl.fromTo(p, {strokeDashoffset: lens[i] + 14}, {strokeDashoffset: 0, duration: dur * lens[i] / sum, ease: 'none'}, at + dur * acc / sum);
+      acc += lens[i];
+    });
+  });
+}
+const line = (x1, y1, x2, y2, o, s) => shape(op => rc.line(x1, y1, x2, y2, op), s, o);
+// Arrow: shaft then head (head drawn last).
+function arrow(x1, y1, x2, y2, at, dur, o, s, dashed) {
+  const a = Math.atan2(y2 - y1, x2 - x1), h = 30, sp = 0.5;
+  if (dashed) {
+    const n = 5, segs = [];
+    for (let i = 0; i < n; i++) { const f0 = i / n, f1 = (i + .55) / n; segs.push(line(x1 + (x2 - x1) * f0, y1 + (y2 - y1) * f0, x1 + (x2 - x1) * f1, y1 + (y2 - y1) * f1, o, s + i * 3)); }
+    segs.forEach((g, i) => draw(g, at + dur * .8 * i / n, dur * .8 / n));
+  } else draw(line(x1, y1, x2, y2, o, s), at, dur * .8);
+  const head = shape(op => rc.linearPath([[x2 - h * Math.cos(a - sp), y2 - h * Math.sin(a - sp)], [x2, y2], [x2 - h * Math.cos(a + sp), y2 - h * Math.sin(a + sp)]], op), s + 50, o);
+  draw(head, at + dur * .8, dur * .2);
+}
+// Handwritten text: left-to-right reveal in glyph steps, slight seeded tilt.
+function write(cls, s, x, y, size, at, dur, extra = {}) {
+  const el = document.createElement('div');
+  el.className = 't ' + cls; el.textContent = s;
+  Object.assign(el.style, {left: x + 'px', top: y + 'px', fontSize: size + 'px'}, extra);
+  txt.appendChild(el);
+  const n = Math.max(1, s.replace(/\s/g, '').length);
+  tl.fromTo(el, {clipPath: 'inset(-20% 100% -20% -2%)'}, {clipPath: 'inset(-20% -2% -20% -2%)', duration: dur, ease: `steps(${n})`}, at);
+  return el;
+}
+const box = el => ({x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight});
+
+function build() {
+  // ---- Screen 1: BIGGEST CHANGE ----
+  write('kalam', 'Now,', 300, 220, 72, cue('now'), .25, {color: BLUE});
+  write('kalam', 'the', 470, 228, 64, cue('the'), .2, {color: BLUE});
+  const big = write('marker', 'BIGGEST', 300, 330, 200, cue('biggest'), .5);
+  const chg = write('marker', 'CHANGE.', 300, 560, 200, cue('change'), .55, {color: INK});
+  const L = (1920 - Math.max(big.offsetWidth, chg.offsetWidth)) / 2 - 40;
+  [big, chg].forEach(e => e.style.left = L + 'px');
+  document.querySelectorAll('#txt .kalam').forEach((e, i) => e.style.left = (L + 8 + i * 170) + 'px');
+  const c = box(chg);
+  const u1 = line(c.x + 10, c.y + c.h + 18, c.x + c.w - 30, c.y + c.h + 10, {stroke: RED, strokeWidth: 7}, 11);
+  const u2 = line(c.x + 40, c.y + c.h + 44, c.x + c.w - 10, c.y + c.h + 38, {stroke: RED, strokeWidth: 7}, 21);
+  draw(u1, cue('change') + .4, .3); draw(u2, cue('change') + .72, .28);
+  // camera pan across the board on "Build"
+  tl.fromTo('#world', {x: 0}, {x: -X0, duration: .75, ease: 'power2.inOut'}, cue('build'));
+
+  // ---- Screen 2: the pure function ----
+  const FX = X0 + 680, FY = 270, FW = 580, FH = 230;   // buildConfig() box
+  const fbox = shape(op => rc.rectangle(FX, FY, FW, FH, op), 41, {strokeWidth: 5});
+  draw(fbox, cue('build') + .45, .7);
+  const fn = write('mono', 'buildConfig()', FX + 70, FY + 82, 60, cue('config'), .55);
+  // PURE label + circle around the box
+  const pure = write('marker', 'PURE', FX + 30, FY - 190, 104, cue('pure'), .3, {color: RED});
+  write('kalam', 'function', FX + 30 + pure.offsetWidth + 26, FY - 160, 68, cue('function'), .45, {color: INK});
+  const ring = shape(op => rc.ellipse(FX + FW / 2, FY + FH / 2, FW + 200, FH + 120, op), 51, {stroke: RED, strokeWidth: 6, roughness: 1.8});
+  draw(ring, cue('pure') + .1, .5);
+
+  // snapshot document icon (left)
+  const SX = X0 + 150, SY = 255, SW = 210, SH = 250;
+  const doc = shape(op => rc.polygon([[SX, SY], [SX + SW - 55, SY], [SX + SW, SY + 55], [SX + SW, SY + SH], [SX, SY + SH]], op), 61);
+  draw(doc, cue('snapshot'), .45);
+  const fold = shape(op => rc.linearPath([[SX + SW - 55, SY], [SX + SW - 55, SY + 55], [SX + SW, SY + 55]], op), 71, {strokeWidth: 3});
+  draw(fold, cue('snapshot') + .42, .12);
+  [0, 1, 2, 3].forEach(i => draw(line(SX + 32, SY + 105 + i * 36, SX + SW - (i % 2 ? 70 : 34), SY + 105 + i * 36, {strokeWidth: 3, stroke: BLUE}, 81 + i * 7), cue('snapshot') + .5 + i * .07, .08));
+  write('kalam', 'snapshot', SX + 6, SY + SH + 22, 54, cue('snapshot') + .25, .4);
+  // goes in
+  arrow(SX + SW + 30, FY + FH / 2, FX - 26, FY + FH / 2, cue('goes'), .5, {stroke: BLUE, strokeWidth: 5}, 91, true);
+  write('kalam', 'in', SX + SW + 105, FY + FH / 2 - 78, 52, cue('in'), .15, {color: BLUE});
+
+  // config card (right)
+  const CX = X0 + 1430, CY = 220, CW = 380, CH = 310;
+  const card = shape(op => rc.rectangle(CX, CY, CW, CH, op), 101);
+  draw(card, cue('config', 2), .45);
+  arrow(FX + FW + 26, FY + FH / 2, CX - 26, FY + FH / 2, cue('comes'), .4, {stroke: BLUE, strokeWidth: 5}, 111, true);
+  write('kalam', 'out', FX + FW + 70, FY + FH / 2 - 80, 52, cue('out'), .2, {color: BLUE});
+  const code = ['config {', '  sensors,', '  calib,', '}'];
+  let brace;
+  code.forEach((l, i) => { const e = write('mono', l, CX + 34, CY + 40 + i * 64, 42, cue('comes') + .1 + i * .14, .18); if (!i) brace = e; });
+  write('kalam', 'config', CX + 6, CY + CH + 22, 54, cue('config', 2) + .3, .35);
+  // highlighter on the "{"
+  const cw = brace.offsetWidth / 8;
+  const hl = document.createElement('div'); hl.className = 'hl';
+  Object.assign(hl.style, {left: (CX + 34 + cw * 6.6) + 'px', top: (CY + 38) + 'px', width: (cw * 1.8) + 'px', height: '50px'});
+  txt.appendChild(hl);
+  tl.fromTo(hl, {scaleX: 0}, {scaleX: 1, duration: .18, ease: 'power1.out'}, cue('out'));
+
+  // database drum + red X
+  const DX = X0 + 610, DY = 620, DW = 170, DH = 170;
+  const drum = shape(op => rc.path(`M${DX} ${DY} L${DX} ${DY + DH} A${DW / 2} 26 0 0 0 ${DX + DW} ${DY + DH} L${DX + DW} ${DY}`, op), 121);
+  const lid = shape(op => rc.ellipse(DX + DW / 2, DY, DW, 52, op), 131);
+  const band = shape(op => rc.path(`M${DX} ${DY + 60} A${DW / 2} 26 0 0 0 ${DX + DW} ${DY + 60}`, op), 141, {strokeWidth: 3});
+  draw(lid, cue('no'), .16); draw(drum, cue('no') + .14, .22); draw(band, cue('no') + .34, .08);
+  write('kalam', 'database', DX + DW + 26, DY + 70, 52, cue('database'), .3);
+  draw(line(DX - 30, DY - 40, DX + DW + 30, DY + DH + 40, {stroke: RED, strokeWidth: 9}, 151), cue('database') + .12, .14);
+  draw(line(DX + DW + 30, DY - 40, DX - 30, DY + DH + 40, {stroke: RED, strokeWidth: 9}, 161), cue('database') + .28, .14);
+
+  // history clock + red X
+  const KX = X0 + 1230, KY = 705, KR = 92;
+  const clock = shape(op => rc.circle(KX, KY, KR * 2, op), 171);
+  const hands = shape(op => rc.linearPath([[KX, KY - 58], [KX, KY], [KX + 44, KY + 22]], op), 181, {strokeWidth: 5});
+  draw(clock, cue('no', 2), .2); draw(hands, cue('no', 2) + .18, .1);
+  write('kalam', 'history', KX + KR + 28, KY - 30, 52, cue('history'), .3);
+  draw(line(KX - KR - 30, KY - KR - 30, KX + KR + 30, KY + KR + 30, {stroke: RED, strokeWidth: 9}, 191), cue('history') + .12, .14);
+  draw(line(KX + KR + 30, KY - KR - 30, KX - KR - 30, KY + KR + 30, {stroke: RED, strokeWidth: 9}, 201), cue('history') + .28, .14);
+
+  LAB.captions(document.getElementById('caps'));
+  LAB.done();
+  // 8 fps line boil: swap between the 3 seeded variants of every shape
+  const s = window.__seek;
+  window.__seek = t => { s(t); const k = Math.floor(t * 8) % 3; for (const vs of shapes) vs.forEach((g, i) => g.style.display = i === k ? '' : 'none'); };
+  window.__seek(0);
+}
+addEventListener('load', () => Promise.all(['200px "Permanent Marker"', '700 54px Kalam', '700 60px "JetBrains Mono"'].map(f => document.fonts.load(f))).then(build));
+</script>
+</body></html>

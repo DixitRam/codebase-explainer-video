@@ -1,0 +1,166 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Swimlane Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=block" rel="stylesheet">
+<style>
+  :root{--paper:#FAFAF7;--sep:#E7E5DF;--ink:#1F2328;--mute:#6B6F76;
+    --ui:#DCEBFF;--uiS:#2F6FEB;--api:#E6F6EA;--apiS:#1F9D55;--db:#FFF1D6;--dbS:#C77700;--code:#F1E8FF;--codeS:#7C3AED;--no:#FFE3E3;--noS:#D92D20}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:var(--paper);color:var(--ink);font-family:"Plus Jakarta Sans",sans-serif}
+  .abs{position:absolute}
+  .lane{position:absolute;left:0;width:1920px}
+  .lane .sep{position:absolute;left:40px;right:40px;bottom:0;border-bottom:2px dashed var(--sep)}
+  .lane .lbl{position:absolute;left:64px;top:50%;transform:translateY(-50%);font-weight:800;font-size:15px;letter-spacing:.14em;color:var(--mute);display:flex;align-items:center;gap:10px}
+  .lane .lbl i{width:12px;height:12px;border-radius:4px;border:2px solid}
+  .box{position:absolute;border-radius:16px;border:2px solid;display:flex;flex-direction:column;justify-content:center;padding:16px 22px;gap:6px}
+  .box .t{display:flex;align-items:center;gap:12px;font-weight:800;font-size:24px;letter-spacing:-.01em}
+  .box .t svg{flex:none}
+  .box .s{font-family:"IBM Plex Mono",monospace;font-size:15px;color:var(--mute);padding-left:42px}
+  .ui{background:var(--ui);border-color:var(--uiS);box-shadow:0 4px 0 rgba(47,111,235,.15)}
+  .api{background:var(--api);border-color:var(--apiS);box-shadow:0 4px 0 rgba(31,157,85,.15)}
+  .db{background:var(--db);border-color:var(--dbS);box-shadow:0 4px 0 rgba(199,119,0,.15)}
+  .code{background:var(--code);border-color:var(--codeS);box-shadow:0 4px 0 rgba(124,58,237,.15)}
+  .chip{background:#fff;border:1.5px solid #E2D6FB;border-radius:10px;padding:10px 14px;font-family:"IBM Plex Mono",monospace;font-size:17px;line-height:25px;color:#3B3F46;white-space:pre}
+  .chip b{color:var(--codeS);font-weight:600}.chip em{font-style:normal;color:var(--uiS)}.chip u{text-decoration:none;color:var(--apiS)}
+  .seal{position:absolute;inset:6px;border:2px solid var(--codeS);border-radius:10px;pointer-events:none}
+  .badge{position:absolute;width:38px;height:38px;border-radius:50%;color:#fff;font-weight:800;font-size:19px;display:grid;place-items:center;border:3px solid var(--paper)}
+  .pill{position:absolute;left:0;top:0;height:38px;padding:0 16px 0 12px;border-radius:19px;border:2px solid;display:flex;align-items:center;gap:8px;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:17px;white-space:nowrap}
+  .tag{position:absolute;height:34px;padding:0 14px;border-radius:17px;display:flex;align-items:center;gap:7px;font-weight:800;font-size:16px;color:#fff;background:var(--codeS);white-space:nowrap}
+  .x{position:absolute;width:34px;height:34px;border-radius:50%;background:var(--no);border:2px solid var(--noS);color:var(--noS);display:grid;place-items:center;font-weight:800;font-size:18px}
+  #head .h{font-weight:800;font-size:40px;letter-spacing:-.02em}
+  #head .b{font-family:"IBM Plex Mono",monospace;font-size:17px;color:var(--mute);margin-top:4px}
+  #cap{position:absolute;left:0;top:896px;width:1920px;height:184px;border-top:2px solid var(--sep)}
+  .cap-group{position:absolute;left:0;right:0;top:56px;text-align:center;font-weight:700;font-size:48px;letter-spacing:-.01em}
+  .cap-word{display:inline-block;color:var(--ink);opacity:calc(.28 + .72*var(--on,0))}
+</style></head>
+<body>
+<div id="head" class="abs" style="left:64px;top:30px"><div class="h">How a device config gets built</div><div class="b">config v2 · buildConfig</div></div>
+
+<!-- lanes -->
+<div id="laneUI" class="lane" style="top:128px;height:150px"><div class="lbl"><i style="border-color:var(--uiS);background:var(--ui)"></i>UI</div><div class="sep"></div></div>
+<div id="laneAPI" class="lane" style="top:278px;height:180px"><div class="lbl"><i style="border-color:var(--apiS);background:var(--api)"></i>API</div><div class="sep"></div></div>
+<div id="laneCode" class="lane" style="top:458px;height:230px;background:rgba(241,232,255,.38)"><div class="lbl" style="color:var(--codeS)"><i style="border-color:var(--codeS);background:var(--code)"></i>CODE</div><div class="sep"></div></div>
+<div id="laneDB" class="lane" style="top:688px;height:188px"><div class="lbl"><i style="border-color:var(--dbS);background:var(--db)"></i>DB</div></div>
+
+<!-- connectors -->
+<svg id="wires" class="abs" width="1920" height="896" style="left:0;top:0;overflow:visible" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <defs><mask id="mDB"><path id="mDBp" d="M890,650 V752" stroke="#fff" stroke-width="8" stroke-linecap="butt"/></mask>
+        <mask id="mH"><path id="mHp" d="M1180,650 V690 Q1180,700 1190,700 H1220 Q1230,700 1230,710 V752" stroke="#fff" stroke-width="8" stroke-linecap="butt"/></mask></defs>
+  <path id="wUI" d="M450,246 V312" stroke="#2F6FEB" stroke-width="2.5" opacity=".45"/>
+  <path id="wIn" d="M660,368 H698 Q710,368 710,380 V562 Q710,574 722,574 H758" stroke="#2F6FEB" stroke-width="2.5"/>
+  <path id="aIn" d="M748,566 L758,574 L748,582" stroke="#2F6FEB" stroke-width="2.5"/>
+  <path id="wOut" d="M1282,574 H1348 Q1360,574 1360,562 V380 Q1360,368 1372,368 H1438" stroke="#1F9D55" stroke-width="2.5"/>
+  <path id="aOut" d="M1428,360 L1438,368 L1428,376" stroke="#1F9D55" stroke-width="2.5"/>
+  <path id="wDB" d="M890,650 V752" stroke="#C77700" stroke-width="2.5" stroke-dasharray="7 7" mask="url(#mDB)"/>
+  <path id="wH" d="M1180,650 V690 Q1180,700 1190,700 H1220 Q1230,700 1230,710 V752" stroke="#C77700" stroke-width="2.5" stroke-dasharray="7 7" mask="url(#mH)"/>
+</svg>
+
+<!-- boxes -->
+<div id="bUI" class="box ui" style="left:300px;top:160px;width:300px;height:86px">
+  <div class="t"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2F6FEB" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M9 20h6M12 16v4"/></svg>Device page</div></div>
+<div id="bSnap" class="box api" style="left:300px;top:312px;width:360px;height:112px">
+  <div class="t"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1F9D55" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="12" cy="12" r="3.2"/><path d="M8 5l1.5-2h5L16 5"/></svg>Device snapshot</div>
+  <div class="s">GET /devices/:id/snapshot</div></div>
+<div id="bFn" class="box code" style="left:760px;top:480px;width:522px;height:170px;justify-content:flex-start;padding-top:16px">
+  <div class="t" style="color:#4C1D95"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4c-2 0-3 1-3 3v2c0 1.5-1 3-2 3 1 0 2 1.5 2 3v2c0 2 1 3 3 3M16 4c2 0 3 1 3 3v2c0 1.5 1 3 2 3-1 0-2 1.5-2 3v2c0 2-1 3-3 3"/></svg>buildConfig()<span style="font-family:'IBM Plex Mono';font-weight:500;font-size:15px;color:#7C6AA8;margin-left:auto">config/build.ts</span></div>
+  <div class="chip">export function <b>buildConfig</b>(
+  <em>snapshot</em>: Snapshot
+): <u>Config</u></div>
+  <div id="seal" class="seal"></div></div>
+<div id="bCfg" class="box api" style="left:1440px;top:312px;width:330px;height:112px">
+  <div class="t"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1F9D55" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>Device config</div>
+  <div class="s">config.json</div></div>
+<div id="dbGroup" class="abs" style="left:0;top:0;width:1920px;height:896px;pointer-events:none">
+  <div id="bDB" class="box db" style="left:760px;top:752px;width:260px;height:96px">
+    <div class="t"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#C77700" stroke-width="1.8"><ellipse cx="12" cy="6" rx="7" ry="2.6"/><path d="M5 6v12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6M5 12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6"/></svg>database</div></div>
+  <div id="bHist" class="box db" style="left:1100px;top:752px;width:260px;height:96px">
+    <div class="t"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#C77700" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>history</div></div>
+</div>
+
+<div id="tagBig" class="tag" style="left:64px;top:600px"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.7 7-6.3-3.9-6.3 3.9 1.7-7L2 9.5l7.1-.6z"/></svg>biggest change</div>
+<div id="tagPure" class="tag" style="left:1196px;top:462px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>pure</div>
+<div id="b1" class="badge" style="left:741px;top:461px;background:var(--codeS)">1</div>
+<div id="b2" class="badge" style="left:691px;top:451px;background:var(--uiS)">2</div>
+<div id="b3" class="badge" style="left:1341px;top:451px;background:var(--apiS)">3</div>
+<div id="xDB" class="x" style="left:873px;top:684px">✕</div>
+<div id="xH" class="x" style="left:1193px;top:683px">✕</div>
+<div id="pSnap" class="pill" style="background:var(--ui);border-color:var(--uiS);color:#1D4FB8"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2F6FEB" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>snapshot</div>
+<div id="pCfg" class="pill" style="background:var(--api);border-color:var(--apiS);color:#14713C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F9D55" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>config</div>
+
+<div id="cap"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="../lab.js"></script>
+<script>
+Promise.all(["800 40px 'Plus Jakarta Sans'","700 48px 'Plus Jakarta Sans'","500 17px 'IBM Plex Mono'","600 17px 'IBM Plex Mono'"].map(f=>document.fonts.load(f))).then(build);
+function build(){
+  const {tl,cue}=LAB, $=s=>document.querySelector(s);
+  const draw=(p,t,d=.4,ease="power2.inOut")=>{const L=p.getTotalLength();tl.fromTo(p,{strokeDasharray:L,strokeDashoffset:L},{strokeDashoffset:0,duration:d,ease},t)};
+  const pop=(el,t,from=.9)=>tl.fromTo(el,{autoAlpha:0,scale:from,y:6},{autoAlpha:1,scale:1,y:0,duration:.35,ease:"power3.out"},t);
+  const badge=(el,t)=>tl.fromTo(el,{autoAlpha:0,scale:0},{autoAlpha:1,scale:1,duration:.4,ease:"back.out(3)"},t);
+  const emph=(el,t)=>{tl.fromTo(el,{borderWidth:2},{borderWidth:4,duration:.15,yoyo:true,repeat:1,ease:"power1.inOut"},t)};
+  // pill rides path at constant speed (~600 px/s), seekable via onUpdate
+  const ride=(pill,path,t)=>{const L=path.getTotalLength(),d=L/600,w=pill.offsetWidth,h=pill.offsetHeight,o={p:0};
+    const place=()=>{const pt=path.getPointAtLength(o.p*L);gsap.set(pill,{x:pt.x-w/2,y:pt.y-h/2})};place();
+    tl.fromTo(pill,{autoAlpha:0,scale:.6},{autoAlpha:1,scale:1,duration:.2,ease:"back.out(2)"},t);
+    tl.fromTo(o,{p:0},{p:1,duration:d,ease:"none",onUpdate:place},t);
+    tl.to(pill,{autoAlpha:0,scale:.5,duration:.18,ease:"power2.in"},t+d-.05);return t+d};
+
+  // 0.00 Now: existing sheet (UI, API, DB) fades in
+  tl.fromTo("#head",{autoAlpha:0,y:8},{autoAlpha:1,y:0,duration:.4,ease:"power3.out"},0);
+  tl.fromTo(["#laneUI","#laneAPI","#laneDB"],{autoAlpha:0},{autoAlpha:1,duration:.4,stagger:.08},0.02);
+  tl.fromTo(["#bUI","#bSnap"],{autoAlpha:0,y:6},{autoAlpha:.45,y:0,duration:.35,stagger:.1,ease:"power3.out"},0.1);
+  tl.fromTo(["#bDB","#bHist"],{autoAlpha:0,y:6},{autoAlpha:.45,y:0,duration:.35,stagger:.1,ease:"power3.out"},0.3);
+  draw($("#wUI"),0.35,.3);
+  // DB lane starts directly under API; Code lane slides in and pushes it down on "change"
+  tl.fromTo(["#laneDB","#dbGroup"],{y:-230},{y:0,duration:.55,ease:"power3.inOut"},cue("change"));
+  tl.fromTo("#laneCode",{autoAlpha:0,x:-80},{autoAlpha:1,x:0,duration:.5,ease:"power3.out"},cue("change")+.1);
+  pop($("#tagBig"),cue("change")+.25,.6);
+
+  // Build config: box ① pops with snippet chip
+  pop($("#bFn"),cue("build"));badge($("#b1"),cue("build")+.2);
+  tl.fromTo("#bFn .chip",{autoAlpha:0,y:8},{autoAlpha:1,y:0,duration:.35,ease:"power3.out"},cue("config"));
+  tl.fromTo("#bFn .chip b",{backgroundColor:"rgba(124,58,237,0)"},{backgroundColor:"rgba(124,58,237,.16)",duration:.25,yoyo:true,repeat:1,repeatDelay:.3},cue("config")+.2);
+  // pure tag + sealed double border
+  pop($("#tagPure"),cue("pure"),.5);
+  tl.fromTo("#seal",{autoAlpha:0,scale:1.04},{autoAlpha:1,scale:1,duration:.35,ease:"power3.out"},cue("function"));
+  emph($("#bFn"),cue("function"));
+
+  // A snapshot goes in: ②
+  tl.to("#bSnap",{autoAlpha:1,duration:.3},cue("snapshot"));
+  emph($("#bSnap"),cue("snapshot"));
+  draw($("#wIn"),cue("snapshot")+.1,.45);
+  tl.fromTo("#aIn",{autoAlpha:0},{autoAlpha:1,duration:.15},cue("snapshot")+.5);
+  const inEnd=ride($("#pSnap"),$("#wIn"),cue("goes"));
+  emph($("#bFn"),inEnd-.05);
+  badge($("#b2"),cue("in"));
+
+  // a config comes out: ③
+  draw($("#wOut"),cue("config",2),.45);
+  tl.fromTo("#aOut",{autoAlpha:0},{autoAlpha:1,duration:.15},cue("config",2)+.4);
+  pop($("#bCfg"),cue("config",2)+.15);
+  const outEnd=ride($("#pCfg"),$("#wOut"),cue("comes"));
+  emph($("#bCfg"),outEnd-.05);
+  badge($("#b3"),cue("out"));
+
+  // No database: dashed wire stops halfway, turns red, ✕
+  tl.to("#bDB",{autoAlpha:1,duration:.25},cue("no"));
+  tl.fromTo("#mDBp",{strokeDasharray:"102 200",strokeDashoffset:102},{strokeDashoffset:58,duration:.3,ease:"power2.out"},cue("no")+.05);
+  tl.to("#wDB",{stroke:"#D92D20",duration:.15},cue("database"));
+  badge($("#xDB"),cue("database"));
+  tl.to("#bDB",{autoAlpha:.3,duration:.4},cue("database")+.35);
+  // No history: same attempt, then the clock greys out and slides away
+  tl.to("#bHist",{autoAlpha:1,duration:.25},cue("no",2));
+  tl.fromTo("#mHp",{strokeDasharray:"140 200",strokeDashoffset:140},{strokeDashoffset:88,duration:.3,ease:"power2.out"},cue("no",2)+.05);
+  tl.to("#wH",{stroke:"#D92D20",duration:.15},cue("history"));
+  badge($("#xH"),cue("history"));
+  tl.to("#bHist",{filter:"grayscale(1)",x:260,autoAlpha:0,duration:.7,ease:"power2.in"},cue("history")+.25);
+  for(const [x,pth,len] of [["#xDB","#wDB",44],["#xH","#wH",52]]){const pt=$(pth).getPointAtLength(len);gsap.set(x,{left:pt.x-17,top:pt.y-17})}
+  // final settle: the pure box holds focus
+  emph($("#bFn"),9.0);
+
+  LAB.captions($("#cap"));
+  LAB.done();
+  { const s = window.__seek; window.__seek = (t) => { s(t); }; } // return nothing: Playwright would serialise the whole timeline
+}
+</script></body></html>

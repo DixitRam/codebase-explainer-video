@@ -1,0 +1,161 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Zürich Schematic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;800&family=Inter:wght@500;600&family=JetBrains+Mono:wght@500;700&display=block" rel="stylesheet">
+<style>
+:root{--paper:#F2F0EA;--ink:#111111;--red:#E2231A;--rule:#BDB8AE;--grey:#8A857B}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--paper)}
+#stage{position:absolute;left:0;top:0;width:1920px;height:896px;overflow:hidden;background:var(--paper)}
+.abs{position:absolute}
+.grid{position:absolute;inset:0;pointer-events:none}
+.gl{position:absolute;top:0;width:1px;height:896px;background:var(--rule);transform-origin:top;opacity:.55}
+.mask{position:absolute;overflow:hidden;padding-bottom:.12em;line-height:1}
+.mask>span{display:block;white-space:nowrap}
+.kick{font:500 22px 'JetBrains Mono';color:var(--grey);letter-spacing:.02em;text-transform:uppercase}
+.kick b{color:var(--ink);font-weight:700}
+.dsp{font-family:'Inter Tight';font-weight:800;letter-spacing:-.045em;color:var(--ink)}
+.mono{font-family:'JetBrains Mono';font-weight:500}
+#chgBlock{left:96px;top:470px;width:1728px;height:290px;background:var(--red)}
+#chgText{left:120px;top:478px;font-size:300px;color:var(--paper)}
+.edge{position:absolute;background:var(--ink)}
+.blk{position:absolute;box-sizing:border-box;display:flex;align-items:flex-end;padding:0 0 18px 22px;font:500 46px 'JetBrains Mono';letter-spacing:-.02em}
+.bar{position:absolute;height:14px;background:var(--red);transform-origin:left center}
+.strike{position:absolute;height:14px;background:var(--red);transform-origin:left center}
+.num{font:700 22px 'JetBrains Mono';color:var(--red)}
+#cap{position:absolute;left:0;top:896px;width:1920px;height:184px;background:var(--ink)}
+.cap-group{position:absolute;left:96px;top:58px;font:800 60px 'Inter Tight';letter-spacing:-.03em;color:var(--paper);visibility:hidden;white-space:nowrap}
+.cap-word{opacity:calc(.22 + .78*var(--on,0))}
+</style></head><body>
+<div id="stage">
+  <div class="grid" id="grid"></div>
+
+  <!-- kicker row -->
+  <div class="mask kick" style="left:96px;top:56px"><span id="k1"><b>03</b> — Config v2</span></div>
+  <div class="mask kick" style="left:1410px;top:56px"><span id="k2">Device config / <b>build</b></span></div>
+  <div class="edge" id="topRule" style="left:96px;top:100px;width:1728px;height:3px"></div>
+
+  <!-- A: the biggest change -->
+  <div class="mask dsp" style="left:96px;top:150px;font-size:110px"><span id="aNow">Now the</span></div>
+  <div class="mask dsp" style="left:90px;top:258px;font-size:250px"><span id="aBig">biggest</span></div>
+  <div class="abs" id="chgBlock"></div>
+  <div class="mask dsp" id="chgMask" style="left:110px;top:478px;font-size:300px;color:var(--paper)"><span id="aChg">change.</span></div>
+
+  <!-- B: buildConfig is a pure function -->
+  <div class="mask kick" style="left:96px;top:140px"><span id="hdr">The biggest change</span></div>
+  <div id="frame" class="abs" style="left:96px;top:190px;width:1144px;height:210px">
+    <div class="edge" id="fT" style="left:0;top:0;right:0;height:3px;transform-origin:left"></div>
+    <div class="edge" id="fR" style="right:0;top:0;bottom:0;width:3px;transform-origin:top"></div>
+    <div class="edge" id="fB" style="left:0;bottom:0;right:0;height:3px;transform-origin:right"></div>
+    <div class="edge" id="fL" style="left:0;top:0;bottom:0;width:3px;transform-origin:bottom"></div>
+  </div>
+  <div class="mask mono" id="fnMask" style="left:136px;top:222px;font-size:130px"><span id="fn">build<span id="fnCfg">Config</span>()</span></div>
+  <div class="abs" id="pureBlk" style="background:var(--red)"></div>
+  <div class="mask dsp" style="left:96px;top:450px;font-size:160px"><span id="bIs">is a</span></div>
+  <div class="mask dsp" id="pureMask" style="left:456px;top:450px;font-size:160px"><span id="bPure">pure</span></div>
+  <div class="mask dsp" style="left:836px;top:450px;font-size:160px"><span id="bFn">function.</span></div>
+
+  <!-- C: schematic -->
+  <div class="mask kick" style="left:96px;top:270px"><span id="c1"><span class="num">01</span> Input</span></div>
+  <div class="mask kick" style="left:680px;top:270px"><span id="c2"><span class="num">02</span> Pure function</span></div>
+  <div class="mask kick" style="left:1410px;top:270px"><span id="c3"><span class="num">03</span> Output</span></div>
+  <div class="blk" id="snap" style="left:96px;top:320px;width:390px;height:160px;background:var(--rule);color:var(--ink)">snapshot</div>
+  <div class="bar" id="barIn" style="left:486px;top:393px;width:194px"></div>
+  <div class="bar" id="barOut" style="left:1240px;top:393px;width:170px"></div>
+  <div class="blk" id="cfg" style="left:1410px;top:320px;width:414px;height:160px;background:var(--red);color:var(--paper)">config</div>
+  <div class="mask kick" style="left:680px;top:500px"><span id="sig">Snapshot <b>→</b> Config</span></div>
+
+  <div class="edge" id="lowRule" style="left:96px;top:600px;width:1728px;height:3px;transform-origin:left"></div>
+  <div class="mask kick" style="left:96px;top:624px"><span id="n1"><span class="num">No</span> reads</span></div>
+  <div class="mask kick" style="left:972px;top:624px"><span id="n2"><span class="num">No</span> state</span></div>
+  <div class="mask dsp" style="left:90px;top:660px;font-size:150px;color:var(--grey)"><span id="db">Database</span></div>
+  <div class="strike" id="sDb" style="left:96px;top:742px;width:690px"></div>
+  <div class="mask dsp" style="left:966px;top:660px;font-size:150px;color:var(--grey)"><span id="hist">History</span></div>
+  <div class="strike" id="sHist" style="left:972px;top:742px;width:580px"></div>
+</div>
+<div id="cap"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="../lab.js"></script>
+<script>
+document.fonts.ready.then(() => {
+  const { tl, cue } = LAB, $ = (s) => document.querySelector(s);
+  const E = "power4.inOut";
+  // 12-col grid: margin 96, gutter 24, col 122
+  const grid = $("#grid"), lines = [];
+  for (let i = 0; i < 12; i++) for (const x of [96 + i * 146, 96 + i * 146 + 122]) { const d = document.createElement("div"); d.className = "gl"; d.style.left = x + "px"; grid.appendChild(d); lines.push(d); }
+  const gridPulse = (t, hold = 0.45) => {
+    tl.fromTo(lines, { scaleY: 0, autoAlpha: 1 }, { scaleY: 1, duration: 0.35, ease: E, stagger: 0.012, immediateRender: false }, t);
+    tl.to(lines, { autoAlpha: 0, duration: 0.25, ease: "none" }, t + 0.35 + hold);
+  };
+  gsap.set(lines, { scaleY: 0 });
+  const rise = (el, t, d = 0.45) => tl.fromTo(el, { yPercent: 135 }, { yPercent: 0, duration: d, ease: E }, t);
+  const sink = (el, t, d = 0.35) => tl.to(el, { yPercent: -135, duration: d, ease: E }, t);
+  const wipe = (el, t, d = 0.4) => tl.fromTo(el, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: d, ease: E }, t);
+  const draw = (el, t, d = 0.25, ease = E) => tl.fromTo(el, { scaleX: 0 }, { scaleX: 1, duration: d, ease }, t);
+
+  // A — 0.00 → 1.64
+  gridPulse(cue("Now"), 0.5);
+  rise("#k1", cue("Now")); rise("#k2", cue("Now") + 0.08);
+  draw("#topRule", cue("Now"), 0.6);
+  rise("#aNow", cue("the"));
+  rise("#aBig", cue("biggest"));
+  wipe("#chgBlock", cue("change"), 0.35);
+  rise("#aChg", cue("change") + 0.06);
+  // exit on Build
+  const B = cue("Build");
+  sink("#aNow", B); sink("#aBig", B + 0.03); sink("#aChg", B + 0.06);
+  tl.to("#chgBlock", { clipPath: "inset(0 0 0 100%)", duration: 0.35, ease: E }, B + 0.04);
+  gridPulse(B, 0.5);
+
+  // B — buildConfig is a pure function
+  rise("#hdr", B + 0.15);
+  rise("#fn", B + 0.18, 0.5);
+  tl.set("#fnCfg", { color: "#E2231A" }, cue("config"));
+  rise("#bIs", cue("is"));
+  // red block snaps behind "pure"
+  const isM = $("#bIs").parentNode, pm = $("#pureMask"), fm = $("#bFn").parentNode;
+  pm.style.left = isM.offsetLeft + isM.offsetWidth + 44 + "px";
+  fm.style.left = pm.offsetLeft + pm.offsetWidth + 44 + "px";
+  gsap.set("#pureBlk", { left: pm.offsetLeft - 18, top: pm.offsetTop + 16, width: pm.offsetWidth + 30, height: 168 });
+  tl.fromTo("#pureBlk", { scaleY: 0, transformOrigin: "50% 100%" }, { scaleY: 1, duration: 0.12, ease: "power4.out" }, cue("pure"));
+  tl.set("#bPure", { color: "#F2F0EA" }, cue("pure"));
+  rise("#bPure", cue("pure"), 0.3);
+  rise("#bFn", cue("function"));
+  // hairline frame draws around the function
+  const F0 = cue("function");
+  draw("#fT", F0, 0.18, "none");
+  tl.fromTo("#fR", { scaleY: 0 }, { scaleY: 1, duration: 0.1, ease: "none" }, F0 + 0.18);
+  draw("#fB", F0 + 0.28, 0.18, "none");
+  tl.fromTo("#fL", { scaleY: 0 }, { scaleY: 1, duration: 0.1, ease: "none" }, F0 + 0.46);
+
+  // C — reflow into the schematic on "A"
+  const A = cue(10);
+  gridPulse(A, 0.6);
+  sink("#bIs", A); sink("#bPure", A + 0.03); sink("#bFn", A + 0.06);
+  tl.to("#pureBlk", { scaleY: 0, duration: 0.3, ease: E }, A + 0.03);
+  sink("#hdr", A);
+  tl.to("#frame", { left: 680, top: 320, width: 560, height: 160, duration: 0.55, ease: E }, A);
+  tl.to("#fnMask", { left: 711, top: 362, fontSize: 64, duration: 0.55, ease: E }, A);
+  rise("#c2", A + 0.25);
+  rise("#c1", cue("snapshot"));
+  wipe("#snap", cue("snapshot"));
+  draw("#bar" + "In", cue("goes"), cue("in") + 0.2 - cue("goes"), "power2.in");
+  rise("#c3", cue("config", 2));
+  wipe("#cfg", cue("config", 2));
+  draw("#barOut", cue("comes"), cue("out") + 0.2 - cue("comes"), "power2.in");
+  rise("#sig", cue("out"));
+
+  // No database / No history
+  draw("#lowRule", cue("No"), 0.5);
+  rise("#n1", cue("No")); rise("#db", cue("No") + 0.04);
+  draw("#sDb", cue("database"), 0.3, "power4.out");
+  rise("#n2", cue("No", 2)); rise("#hist", cue("No", 2) + 0.04);
+  draw("#sHist", cue("history"), 0.3, "power4.out");
+
+  LAB.captions($("#cap"));
+  LAB.done();
+  // harness __seek returns the GSAP timeline; Playwright hangs serialising it, so return nothing
+  const s = window.__seek; window.__seek = (t) => { s(t); };
+});
+</script>
+</body></html>

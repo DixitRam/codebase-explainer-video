@@ -1,0 +1,164 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Bento Keynote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700&family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=block" rel="stylesheet">
+<style>
+:root{--canvas:#F5F5F7;--tile:#FFFFFF;--ink:#1D1D1F;--sec:#86868B;--indigo:#5E5CE6;--ok:#30D158;--stop:#FF453A;--line:#E5E5EA}
+*{box-sizing:border-box;margin:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--canvas);color:var(--ink);font-family:Inter,sans-serif}
+#view{position:absolute;left:0;top:0;width:1920px;height:896px;overflow:hidden}
+#world{position:absolute;left:0;top:0;width:2472px;height:1064px;transform-origin:0 0}
+.tile{position:absolute;background:var(--tile);border:1px solid var(--line);border-radius:28px;box-shadow:0 1px 2px #0000000F,0 12px 32px #0000000A;overflow:hidden}
+.ring{position:absolute;inset:0;border-radius:28px;border:3px solid var(--indigo);opacity:0}
+.eyebrow{position:absolute;left:64px;top:56px;font-size:24px;font-weight:600;letter-spacing:.02em;color:var(--sec)}
+.disp{font-family:"Inter Tight",sans-serif;font-weight:700;letter-spacing:-.03em}
+.mono{font-family:"Geist Mono",monospace}
+.sk{position:absolute;background:#EFEFF2;border-radius:14px}
+/* hero */
+#intro{position:absolute;left:0;right:0;top:330px;text-align:center;font-size:150px;line-height:1.02}
+#intro span{display:inline-block}
+#fnTitle{position:absolute;left:64px;top:190px;font-size:112px;font-weight:600;letter-spacing:-.04em}
+#fnSub{position:absolute;left:68px;top:334px;font-size:34px;color:var(--sec)}
+#pill{position:absolute;left:910px;top:208px;background:var(--indigo);color:#fff;font-family:"Inter Tight";font-weight:700;font-size:40px;letter-spacing:.06em;padding:14px 30px;border-radius:999px}
+#code{position:absolute;left:64px;right:64px;top:440px;background:#FBFBFD;border:1px solid var(--line);border-radius:22px;overflow:hidden}
+#code .bar{height:62px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 26px;gap:12px;font-size:24px;color:var(--sec)}
+#code .bar i{width:14px;height:14px;border-radius:50%;background:#DADADF;display:inline-block}
+#code pre{font-family:"Geist Mono",monospace;font-size:38px;line-height:68px;padding:30px 40px 34px;color:var(--ink)}
+.k{color:#AD3DA4}.ty{color:#0E7C86}.p{color:#9A9AA0}
+#hl{position:relative;color:var(--indigo)}
+#hl b{position:absolute;inset:-4px -8px;background:#5E5CE61F;border-radius:8px;transform-origin:0 50%}
+/* flow */
+.chip{position:absolute;top:230px;height:116px;border-radius:999px;border:2px solid var(--line);background:#fff;font-size:44px;font-weight:500;display:flex;align-items:center;justify-content:center}
+#fx{position:absolute;left:522px;top:198px;width:180px;height:180px;border-radius:50%;background:var(--indigo);color:#fff;font-family:"Inter Tight";font-style:italic;font-weight:600;font-size:100px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px #5E5CE640}
+.conn{position:absolute;top:286px;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.conn i{position:absolute;top:0;bottom:0;width:120px;background:linear-gradient(90deg,#5E5CE600,#5E5CE6,#5E5CE600)}
+.caption{position:absolute;left:64px;bottom:52px;font-size:30px;color:var(--sec)}
+/* facts */
+.glyph{position:absolute;left:64px;top:120px}
+.ftitle{position:absolute;left:64px;top:236px;font-size:52px}
+.big{position:absolute;left:58px;top:310px;font-size:150px;color:var(--stop);transform-origin:0 70%}
+.big small{font-size:48px;opacity:.75;letter-spacing:-.02em;margin-left:10px}
+#caps{position:absolute;left:0;top:896px;width:1920px;height:184px;background:var(--canvas)}
+.cap-group{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Inter,sans-serif;font-weight:600;font-size:42px;letter-spacing:-.01em}
+.cap-word{margin:0 .12em;color:var(--ink);opacity:calc(.3 + .7*var(--on,0))}
+</style></head><body>
+<div id="view"><div id="world">
+  <!-- hero 2x2 -->
+  <div class="tile" id="tHero" style="left:0;top:0;width:1224px;height:1064px">
+    <div class="eyebrow" id="heroEye">CONFIG V2</div>
+    <div id="intro" class="disp"><span id="i1">The biggest</span><br><span id="i2">change.</span></div>
+    <div id="fnTitle" class="mono">buildConfig()</div>
+    <div id="fnSub">One function builds every device config.</div>
+    <div id="pill">PURE</div>
+    <div id="code">
+      <div class="bar"><i></i><i></i><i></i><span style="margin-left:14px">build-config.ts</span></div>
+<pre><span class="k">export function</span> <span id="hl"><b></b>buildConfig</span><span class="p">(</span>
+  snapshot<span class="p">:</span> <span class="ty">DeviceSnapshot</span><span class="p">,</span>
+<span class="p">):</span> <span class="ty">DeviceConfig</span> <span class="p">{</span>
+  <span class="k">return</span> derive<span class="p">(</span>snapshot<span class="p">);</span>
+<span class="p">}</span></pre>
+    </div>
+    <div class="ring" id="rHero"></div>
+  </div>
+  <!-- flow 2x1 -->
+  <div class="tile" id="tFlow" style="left:1248px;top:0;width:1224px;height:520px">
+    <div class="sk s1" style="left:64px;top:60px;width:220px;height:28px"></div>
+    <div class="sk s1" style="left:64px;top:230px;width:1096px;height:116px;border-radius:58px"></div>
+    <div class="eyebrow fl">IN → OUT</div>
+    <div class="conn" id="c1" style="left:400px;width:122px"><i></i></div>
+    <div class="conn" id="c2" style="left:702px;width:122px"><i></i></div>
+    <div class="chip mono" id="chSnap" style="left:64px;width:336px">snapshot</div>
+    <div id="fx">ƒ</div>
+    <div class="chip mono" id="chCfg" style="left:824px;width:336px;border-color:var(--indigo);color:var(--indigo)">config</div>
+    <div class="caption fl">Snapshot goes in. Config comes out.</div>
+    <div class="ring" id="rFlow"></div>
+  </div>
+  <!-- facts 1x1 -->
+  <div class="tile" id="tDb" style="left:1248px;top:544px;width:600px;height:520px">
+    <div class="sk s2" style="left:64px;top:120px;width:96px;height:96px;border-radius:24px"></div>
+    <div class="sk s2" style="left:64px;top:250px;width:300px;height:44px"></div>
+    <div class="sk s2" style="left:64px;top:340px;width:400px;height:110px"></div>
+    <svg class="glyph g2" width="96" height="96" viewBox="0 0 96 96" fill="none" stroke="#1D1D1F" stroke-width="5"><ellipse cx="48" cy="20" rx="34" ry="11"/><path d="M14 20v56c0 6 15 11 34 11s34-5 34-11V20M14 48c0 6 15 11 34 11s34-5 34-11"/></svg>
+    <div class="ftitle disp g2">Database</div>
+    <div class="big disp" id="bDb">0<small>writes</small></div>
+    <div class="ring" id="rDb"></div>
+  </div>
+  <div class="tile" id="tHi" style="left:1872px;top:544px;width:600px;height:520px">
+    <div class="sk s3" style="left:64px;top:120px;width:96px;height:96px;border-radius:24px"></div>
+    <div class="sk s3" style="left:64px;top:250px;width:300px;height:44px"></div>
+    <div class="sk s3" style="left:64px;top:340px;width:400px;height:110px"></div>
+    <svg class="glyph g3" width="96" height="96" viewBox="0 0 96 96" fill="none" stroke="#1D1D1F" stroke-width="5" stroke-linecap="round"><circle cx="48" cy="48" r="40"/><path d="M48 24v24l16 10"/></svg>
+    <div class="ftitle disp g3">History</div>
+    <div class="big disp" id="bHi">0<small>rows</small></div>
+    <div class="ring" id="rHi"></div>
+  </div>
+</div></div>
+<div id="caps"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="../lab.js"></script>
+<script>
+document.fonts.ready.then(() => {
+  const tl = LAB.tl, C = LAB.cue;
+  // virtual camera: shot = world-space centre + scale
+  const shot = (cx, cy, s) => ({ x: 960 - cx * s, y: 448 - cy * s, scale: s });
+  const S = { tight: shot(612, 483, 1.6), full: shot(1236, 532, 0.728), hero: shot(612, 532, 0.84),
+              flow: shot(1860, 260, 1.32), facts: shot(1860, 804, 1.32) };
+  const cam = (to, t, d = 0.8) => tl.to("#world", { ...S[to], duration: d, ease: "power3.inOut" }, t);
+  tl.fromTo("#world", S.tight, { ...S.tight, duration: 0.01 }, 0);
+  const rise = (el, t, d = 0.6) => tl.fromTo(el, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: d, ease: "expo.out" }, t);
+  const pop = (el, t) => tl.fromTo(el, { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.6, ease: "expo.out" }, t);
+  const ring = (el, t) => tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.25 }, t);
+  const unring = (el, t) => tl.to(el, { opacity: 0, duration: 0.3 }, t);
+  const hide = (sel) => tl.set(sel, { autoAlpha: 0 }, 0);
+  hide("#fnTitle,#fnSub,#pill,#code,#hl b,.fl,#chSnap,#fx,#chCfg,.conn,.g2,.g3,#bDb,#bHi");
+
+  // 1. tight on hero, words land; pull back to the skeleton bento on "change"
+  rise("#heroEye", C("now"));
+  rise("#i1", C("biggest") - 0.1); rise("#i2", C("change"));
+  cam("full", C("change") + 0.15);
+  tl.fromTo(["#tFlow", "#tDb", "#tHi"], { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.6, ease: "expo.out", stagger: 0.08 }, C("change") + 0.3);
+
+  // 2. glide to hero; buildConfig() replaces the intro; PURE pill, code card
+  cam("hero", C("build"), 0.7);
+  tl.to("#intro", { autoAlpha: 0, y: -24, duration: 0.3, ease: "power2.in" }, C("config") - 0.15);
+  rise("#fnTitle", C("config"));
+  rise("#fnSub", C("is"));
+  pop("#pill", C("pure")); ring("#rHero", C("pure"));
+  rise("#code", C("function"));
+  tl.fromTo("#hl b", { autoAlpha: 1, scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power2.out" }, C("function") + 0.35);
+
+  // 3. pan to flow tile
+  unring("#rHero", C("a", 2));
+  cam("flow", C("a", 2));
+  tl.to("#tFlow .s1", { autoAlpha: 0, duration: 0.3 }, C("snapshot"));
+  rise("#tFlow .eyebrow", C("snapshot"));
+  pop("#fx", C("snapshot"));
+  tl.fromTo(".conn", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, C("snapshot") + 0.1);
+  tl.fromTo("#chSnap", { autoAlpha: 0, x: -140 }, { autoAlpha: 1, x: 0, duration: 0.6, ease: "expo.out" }, C("goes"));
+  tl.fromTo("#c1 i", { x: -120 }, { x: 122, duration: 0.45, ease: "power1.inOut" }, C("in"));
+  tl.fromTo("#fx", { scale: 1 }, { scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, C("in") + 0.35);
+  tl.fromTo("#c2 i", { x: -120 }, { x: 122, duration: 0.45, ease: "power1.inOut" }, C("comes"));
+  tl.fromTo("#chCfg", { autoAlpha: 0, x: -120, scale: 0.85 }, { autoAlpha: 1, x: 0, scale: 1, duration: 0.6, ease: "expo.out" }, C("out"));
+  rise(".caption.fl", C("out") + 0.1);
+  ring("#rFlow", C("out"));
+
+  // 4. facts: no database, no history
+  unring("#rFlow", C("no"));
+  cam("facts", C("no"), 0.7);
+  tl.to("#tDb .s2", { autoAlpha: 0, duration: 0.3 }, C("no") + 0.1);
+  rise("#tDb .g2", C("no") + 0.1);
+  pop("#bDb", C("database")); ring("#rDb", C("database"));
+  tl.to("#tHi .s3", { autoAlpha: 0, duration: 0.3 }, C("no", 2));
+  rise("#tHi .g3", C("no", 2));
+  pop("#bHi", C("history")); ring("#rHi", C("history"));
+
+  // 5. pull back to the whole bento
+  cam("full", 8.95, 0.8);
+
+  LAB.captions(document.getElementById("caps"));
+  LAB.done();
+  const seek = window.__seek; window.__seek = (t) => { seek(t); }; // return nothing: Playwright would try to serialise the timeline
+});
+</script>
+</body></html>

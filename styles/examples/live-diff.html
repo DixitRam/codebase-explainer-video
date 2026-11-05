@@ -1,0 +1,169 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Live Diff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400;1,9..144,500&family=Inter:wght@500;600;700&display=block" rel="stylesheet">
+<style>
+  :root{--paper:#F3EFE6;--sheet:#FFFDF8;--ink:#2B2A26;--mute:#8D8A80;--accent:#E5484D;
+    --kw:#8A3FFC;--fn:#0F62FE;--str:#198038;--param:#B2560E}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:var(--paper);color:var(--ink);font-family:Inter,sans-serif}
+  #stage{position:absolute;left:0;top:0;width:1920px;height:896px}
+  #sheet{position:absolute;left:96px;top:66px;width:1236px;height:764px;background:var(--sheet);border-radius:24px;box-shadow:0 30px 60px rgba(60,40,10,.12),0 1px 0 rgba(60,40,10,.06)}
+  #tabs{position:absolute;left:0;top:0;right:0;height:66px;border-bottom:1px solid #ECE6D8;display:flex;align-items:center;padding:0 28px;gap:14px}
+  .tab{font-family:"JetBrains Mono";font-size:20px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:10px}
+  .tab i{width:10px;height:10px;border-radius:50%;background:var(--fn)}
+  .owner{margin-left:auto;font-size:17px;font-weight:600;color:#6B5F45;background:#F3EDE0;border-radius:999px;padding:6px 14px}
+  #stat{font-family:"JetBrains Mono";font-size:17px;font-weight:500}
+  #code{position:absolute;left:0;top:0}
+  .tok{position:absolute;left:0;top:0;font-family:"JetBrains Mono";font-size:32px;line-height:58px;white-space:pre;font-variant-ligatures:contextual;transform-origin:0 50%}
+  .ln{position:absolute;left:0;top:0;width:44px;text-align:right;font-family:"JetBrains Mono";font-size:22px;line-height:58px;color:#C9C3B4}
+  .kw{color:var(--kw)}.fn{color:var(--fn)}.str{color:var(--str)}.param{color:var(--param)}.type{color:#2B2A26;font-weight:700}.p{color:#57544C}
+  .strike{position:absolute;height:3px;background:var(--accent);transform-origin:0 50%;border-radius:2px}
+  .note{position:absolute;font-family:Fraunces;font-style:italic;font-weight:500;font-size:50px;color:var(--accent);white-space:nowrap;line-height:1}
+  .note small{display:block;font-family:Inter;font-style:normal;font-weight:600;font-size:17px;letter-spacing:.06em;color:var(--mute);margin-bottom:8px;text-transform:uppercase}
+  #leads{position:absolute;left:0;top:0;overflow:visible}
+  #cap{position:absolute;left:0;top:896px;width:1920px;height:184px}
+  .cap-group{position:absolute;left:0;right:0;top:54px;text-align:center;font-family:Fraunces;font-weight:500;font-size:52px;letter-spacing:-.005em}
+  .cap-word{display:inline-block;color:var(--ink);opacity:calc(.3 + .7*var(--on,0))}
+</style></head>
+<body>
+<div id="stage"><div id="sheet">
+  <div id="tabs"><div class="tab"><i></i>config/build.ts</div><span id="stat"><span style="color:#198038">+4</span> <span style="color:#E5484D">−7</span></span><div class="owner">owner: @platform</div></div>
+</div>
+<div id="code"></div>
+<svg id="leads" width="1920" height="896" fill="none" stroke="#E5484D" stroke-width="2" stroke-linecap="round"></svg></div>
+<div id="cap"></div>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="../lab.js"></script>
+<script>
+const OLD = `import { db } from "../db";
+import { history } from "../history";
+
+export async function buildConfig(id: string) {
+  const device = await db.query("devices", id);
+  const prev = await history.last(id);
+  return {
+    ...prev,
+    sensors: device.sensors,
+  };
+}`;
+const NEW = `import type { Snapshot, Config } from "./types";
+
+export function buildConfig(snapshot: Snapshot): Config {
+  return {
+    sensors: snapshot.sensors,
+    interval: snapshot.interval,
+  };
+}`;
+const TYPED_LINE = 5; // brand-new line in NEW, typed on "config"
+const KW = new Set(["import","from","export","async","function","const","await","return","type"]);
+const PARAMS = new Set(["id","snapshot"]), TYPES = new Set(["Snapshot","Config","string"]);
+
+// tokenize into {text, cls, line, col}
+function tokenize(src){
+  const out=[];
+  src.split("\n").forEach((ln,line)=>{
+    const re=/\s+|"[^"]*"|\.\.\.|[A-Za-z_$][\w$]*|./g; let m;
+    while((m=re.exec(ln))){const t=m[0]; if(/^\s+$/.test(t)) continue;
+      const next=ln.slice(m.index+t.length);
+      const cls=t[0]==='"'?"str":KW.has(t)?"kw":TYPES.has(t)?"type":PARAMS.has(t)?"param":/^[A-Za-z_$]/.test(t)&&next[0]==="("?"fn":/^[A-Za-z_$]/.test(t)?"id":"p";
+      out.push({text:t,cls,line,col:m.index});}
+  });return out;
+}
+// LCS on token text -> matched pairs keep identity (offline FLIP)
+function lcs(a,b){
+  const n=a.length,m=b.length,d=Array.from({length:n+1},()=>new Int16Array(m+1));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)d[i][j]=a[i].text===b[j].text?d[i+1][j+1]+1:Math.max(d[i+1][j],d[i][j+1]);
+  const pairs=new Map();let i=0,j=0;
+  while(i<n&&j<m){if(a[i].text===b[j].text){pairs.set(i,j);i++;j++}else if(d[i+1][j]>=d[i][j+1])i++;else j++}
+  return pairs;
+}
+
+Promise.all(["400 30px 'JetBrains Mono'","700 30px 'JetBrains Mono'","italic 500 50px Fraunces","500 52px Fraunces","600 17px Inter"].map(f=>document.fonts.load(f))).then(build);
+function build(){
+  const {tl,cue}=LAB, code=document.getElementById("code"), leads=document.getElementById("leads");
+  const ctx=document.createElement("canvas").getContext("2d");ctx.font="400 32px 'JetBrains Mono'";
+  const CW=ctx.measureText("M").width, LH=58, X0=96+86, Y0=66+66+30;
+  const pos=(line,col)=>({x:X0+col*CW,y:Y0+line*LH});
+
+  const A=tokenize(OLD),B=tokenize(NEW),pairs=lcs(A,B),usedB=new Set(pairs.values());
+  const mk=(t,cls)=>{const d=document.createElement("div");d.className="tok";const s=document.createElement("span");s.className=cls;s.textContent=t;d.appendChild(s);code.appendChild(d);return d};
+  const all=[]; // {el, ink, nb (new token or null)}
+  A.forEach((t,i)=>{const el=mk(t.text,t.cls),p=pos(t.line,t.col);gsap.set(el,{x:p.x,y:p.y});
+    const j=pairs.get(i);all.push({el,ink:el.firstChild,old:t,nb:j==null?null:B[j]});});
+  const inserted=B.filter((t,j)=>!usedB.has(j)).map(t=>{const el=mk(t.text,t.cls),p=pos(t.line,t.col);gsap.set(el,{x:p.x,y:p.y,autoAlpha:0});const o={el,ink:el.firstChild,nb:t};all.push(o);return o});
+  // line numbers
+  const lns=[];for(let i=0;i<11;i++){const d=document.createElement("div");d.className="ln";d.textContent=i+1;gsap.set(d,{x:96+26,y:Y0+i*LH});code.appendChild(d);lns.push(d)}
+
+  // --- 0.00 card + old code
+  tl.fromTo("#sheet",{autoAlpha:0,y:16},{autoAlpha:1,y:0,duration:.5,ease:"power3.out"},0);
+  tl.fromTo([...all.filter(o=>o.old).map(o=>o.el),...lns],{autoAlpha:0},{autoAlpha:1,duration:.4},0.1);
+
+  // selection: dim everything but predicate (over 0.3 s)
+  const live=t=>all.filter(o=>t<cue("build")+.3?o.old:o.nb);
+  function select(t,pred){live(t).forEach(o=>tl.to(o.ink,{opacity:pred(o)?1:.25,duration:.3,ease:"power1.inOut"},t))}
+  // margin notes with leader line
+  function note(t,text,lineY,fromX,label,out){
+    const n=document.createElement("div");n.className="note";n.innerHTML=(label?`<small>${label}</small>`:"")+text;document.getElementById("stage").appendChild(n);
+    const top=lineY+LH/2-(label?54:26);gsap.set(n,{left:1400,top});
+    const l=document.createElementNS("http://www.w3.org/2000/svg","path");l.setAttribute("d",`M${fromX},${lineY+LH/2} H1376`);leads.appendChild(l);
+    const L=1376-fromX;
+    tl.fromTo(l,{strokeDasharray:L,strokeDashoffset:L},{strokeDashoffset:0,duration:.3,ease:"power2.out"},t);
+    tl.fromTo(n,{clipPath:"inset(0% 100% 0% 0%)",autoAlpha:1},{clipPath:"inset(0% 0% 0% 0%)",duration:.5,ease:"power2.out"},t+.12);
+    if(out!=null)tl.to([n,l],{autoAlpha:0,duration:.25},out);
+  }
+  const lineEnd=(src,line)=>X0+src.split("\n")[line].length*CW+18;
+
+  // --- "the biggest change": note writes on, selection on the db/history calls
+  note(cue("biggest"),"the biggest change",pos(3,0).y,1332,"config/build.ts",cue("build"));
+  select(cue("change"),o=>[0,1,4,5,7].includes(o.old.line));
+
+  // --- "Build": magic move OLD -> NEW
+  const M=cue("build")+.1;
+  all.forEach(o=>tl.to(o.ink,{opacity:1,duration:.25},cue("build")));
+  all.filter(o=>o.old).forEach(o=>{
+    if(o.nb){const p=pos(o.nb.line,o.nb.col);tl.to(o.el,{x:p.x,y:p.y,duration:.6,ease:"power2.inOut"},M);
+      if(o.nb.cls!==o.old.cls)tl.set(o.ink,{className:o.nb.cls},M+.3);}
+    else tl.to(o.el,{autoAlpha:0,scaleX:0,duration:.35,ease:"power2.in"},M);
+  });
+  inserted.filter(o=>o.nb.line!==TYPED_LINE).forEach(o=>tl.fromTo(o.el,{autoAlpha:0,scaleX:0},{autoAlpha:1,scaleX:1,duration:.35,ease:"power2.out"},M+.3));
+  lns.slice(8).forEach(d=>tl.to(d,{autoAlpha:0,duration:.3},M));
+  tl.to("#sheet",{height:66+30+8*LH+44,duration:.6,ease:"power2.inOut"},M);
+  tl.to("#stage",{y:96,duration:.6,ease:"power2.inOut"},M);
+  tl.fromTo("#stat",{autoAlpha:0,x:-8},{autoAlpha:1,x:0,duration:.3,ease:"power2.out"},M+.4);
+  // brand-new line types at ~40 chars/s on "config"
+  inserted.filter(o=>o.nb.line===TYPED_LINE).forEach(o=>tl.set(o.el,{autoAlpha:1,scaleX:1},cue("config")+o.nb.col/40));
+
+  // --- "pure": selection lands on the signature
+  const sig=o=>o.nb&&o.nb.line===2;
+  select(cue("pure"),sig);
+  note(cue("pure"),"pure",pos(2,0).y,lineEnd(NEW,2),null,cue("snapshot"));
+  // --- "snapshot … in": narrow to the parameter
+  const pcol=NEW.split("\n")[2].indexOf("snapshot");
+  select(cue("snapshot"),o=>sig(o)&&o.nb.col>=pcol&&o.nb.col<pcol+18);
+  note(cue("in"),"snapshot in",pos(2,0).y,lineEnd(NEW,2),null,cue("config",2));
+  // --- "config comes out": the return block
+  select(cue("config",2),o=>o.nb&&o.nb.line>=3&&o.nb.line<=6);
+  note(cue("out"),"config out",pos(4,0).y,lineEnd(NEW,5),null,cue("no"));
+  // --- "No database / No history": selection widens to imports, ghost imports struck
+  select(cue("no"),o=>o.nb&&o.nb.line<=1);
+  function ghost(src,t,strikeT,outT){
+    const toks=tokenize(src).map(t0=>{const el=mk(t0.text,t0.cls),p=pos(1,t0.col);gsap.set(el,{x:p.x,y:p.y,autoAlpha:0});return el});
+    tl.fromTo(toks,{autoAlpha:0,y:"-=10"},{autoAlpha:.3,y:"+=10",duration:.3,ease:"power2.out"},t);
+    const s=document.createElement("div");s.className="strike";code.appendChild(s);
+    gsap.set(s,{left:X0-8,top:pos(1,0).y+LH/2-1,width:src.length*CW+16,scaleX:0});
+    tl.to(s,{scaleX:1,duration:.3,ease:"power2.out"},strikeT);
+    tl.to([...toks,s],{autoAlpha:0,duration:.35},outT);
+  }
+  ghost(`import { db } from "../db";`,cue("no"),cue("database"),cue("no",2)-.15);
+  note(cue("database"),"no database",pos(1,0).y,lineEnd(`import { db } from "../db";`,0),null,cue("no",2)-.15);
+  ghost(`import { history } from "../history";`,cue("no",2),cue("history"),9.0);
+  note(cue("history"),"no history",pos(1,0).y,lineEnd(`import { history } from "../history";`,0),null,9.0);
+  // clean frame: the pure function, nothing dimmed
+  live(9.1).forEach(o=>tl.to(o.ink,{opacity:1,duration:.4},9.05));
+
+  LAB.captions(document.getElementById("cap"));
+  LAB.done();
+  { const s = window.__seek; window.__seek = (t) => { s(t); }; } // return nothing: Playwright would serialise the whole timeline
+}
+</script></body></html>

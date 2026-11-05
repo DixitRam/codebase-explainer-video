@@ -1,0 +1,17 @@
+{
+  "baseEnd": 37,
+  "lines": [
+    [0.3, "A customer just checked out. Here's how a cart becomes an order, and what the backend writes along the way."],
+    [5.0, "Two sides meet here: the customer's cart, and the stock we can actually ship."],
+    [10.6, "An order is the cart plus the stock reserved for it, waiting for payment."],
+    [16.0, "Checkout runs one transaction. It rejects an empty cart, creates the order, and reserves stock for every line."],
+    [22.0, "That reservation is our own code, and the condition in the where clause is what stops us overselling."],
+    [28.0, "Tax comes from a vendor module we don't maintain, so treat it as a black box: lines in, a tax amount out."],
+    [33.0, "That's orders. Next up: payments."]
+  ],
+  "sfx": [
+    [0.45, "impactSoft_medium_001.ogg", 0.6],
+    [33.3, "bong_001.ogg", 0.55]
+  ],
+  "music": null
+}

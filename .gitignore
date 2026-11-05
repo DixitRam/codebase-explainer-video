@@ -1,0 +1,11 @@
+.env
+.env.local
+node_modules/
+*.mp4
+*-still-*.png
+*-line-*.wav
+*.timing.json
+*.words.json
+shots/
+capture.config.mjs
+.words-tmp/
