@@ -1,6 +1,6 @@
 ---
 name: codebase-explainer-video
-description: Make narrated codebase explainer videos for DEVELOPERS — how a feature/data flow works end to end (UI button → endpoint → tables written → config/code ownership), in a mixed style: ByteMonk-style animated system diagram + real UI screenshots with zoom/ring callouts + code cards with hand-drawn underlines + kinetic title cards, Gemini TTS narration, burned-in subtitles. Also 13 alternative looks (Swimlane Sheet, Live Diff, Front Page Graphic, Engineering Whiteboard, Proof, Code Report, Zürich Schematic, Sticker Brutal, Bento Keynote, Patent Drawing, Phosphor Terminal, Comic Panel, Engineer's Desk), built narration-first with visuals cued to spoken words. Framework-free pipeline (HTML + Web Animations API → Playwright frame-exact render → ffmpeg). Use when the user asks for a "codebase explainer video", "explain how X works in a video", "video of this flow for the team/new devs", "onboarding video of the code". NOT for client/end-user product demos (use app-walkthrough-video) or launch promos (use brag).
+description: "Make narrated codebase explainer videos for DEVELOPERS — how a feature/data flow works end to end (UI button → endpoint → tables written → config/code ownership), in a mixed style: ByteMonk-style animated system diagram + real UI screenshots with zoom/ring callouts + code cards with hand-drawn underlines + kinetic title cards, Gemini TTS narration, burned-in subtitles. Also 13 alternative looks (Swimlane Sheet, Live Diff, Front Page Graphic, Engineering Whiteboard, Proof, Code Report, Zürich Schematic, Sticker Brutal, Bento Keynote, Patent Drawing, Phosphor Terminal, Comic Panel, Engineer's Desk), built narration-first with visuals cued to spoken words. Framework-free pipeline (HTML + Web Animations API → Playwright frame-exact render → ffmpeg). Use when the user asks for a \"codebase explainer video\", \"explain how X works in a video\", \"video of this flow for the team/new devs\", \"onboarding video of the code\". NOT for client/end-user product demos or launch promos."
 ---
 
 # Codebase explainer video
@@ -77,6 +77,7 @@ Layout rules: 1920×1080; captions own the bottom ~140 px; detail cards right of
 ### 5. Voice → render → mix
 - `VIDEO=<name> node tts.mjs models` (check the model exists), `… tts.mjs audition` (6 voices; Sulafat = warm, Charon = classic explainer), then `… tts.mjs <Voice>`.
 - It measures each line, stretches scenes so each one waits for its line (+0.6 s breath), renders frame-exact, mixes voice + SFX + music → `<name>.mp4`.
+- Rendering is parallel: frames are split across browsers and joined without re-encoding. Default is half the CPU threads, max 4; set `WORKERS=8` to go higher or `WORKERS=1` for one page. Each worker is a Chromium plus an x264 encoder, so lower it on a machine short of memory.
 - Visual-only edits: `REUSE=1 VIDEO=<name> node tts.mjs <Voice>` (no API calls). Changed a line? delete just its `<name>-line-<i>.wav`, then `REUSE=1`.
 
 ### 6. Verify the final file (not the HTML)
@@ -98,7 +99,7 @@ Make one video per chapter, then `node join.mjs out.mp4 "Orders=orders.mp4" "Pay
 
 ## Files
 - `scripts/engine.js`, `scripts/engine.css` — timeline engine + styles (map, cards, rings, code, black box, subtitles)
-- `scripts/render.mjs` — frame-exact render / stills · `scripts/tts.mjs` — Gemini narration, retiming, mix · `scripts/capture.mjs` + `capture.config.example.mjs` — screenshots + boxes · `scripts/join.mjs` — chapters
+- `scripts/render.mjs` — frame-exact parallel render / stills · `scripts/tts.mjs` — Gemini narration, retiming, mix · `scripts/capture.mjs` + `capture.config.example.mjs` — screenshots + boxes · `scripts/join.mjs` — chapters
 - `assets/` — 3 CC0 SFX (Kenney.nl): soft impact (hook), click (button rings), bong (end card). Music is not bundled: bring a track you have the rights to, or set `"music": null`.
 - `examples/orders.html` + `orders.json` — neutral sample covering every element
 - `scripts/words.mjs` — word-level timings for styled videos (after `VOICE_ONLY=1 … tts.mjs`; `tts.mjs` and `render.mjs` pass `TIMING`/`WORDS` to the page)

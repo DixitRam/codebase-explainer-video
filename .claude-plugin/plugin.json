@@ -1,0 +1,9 @@
+{
+  "name": "codebase-explainer-video",
+  "version": "0.1.0",
+  "description": "Narrated explainer videos of how your code really works, researched from the code and rendered frame-exact",
+  "author": { "name": "DixitRam" },
+  "homepage": "https://github.com/DixitRam/codebase-explainer-video",
+  "repository": "https://github.com/DixitRam/codebase-explainer-video",
+  "license": "MIT"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "codebase-explainer-video",
+  "owner": { "name": "DixitRam" },
+  "description": "Narrated explainer videos of how your code really works",
+  "plugins": [{ "name": "codebase-explainer-video", "source": "./" }]
+}

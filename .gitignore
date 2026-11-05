@@ -9,3 +9,4 @@ node_modules/
 shots/
 capture.config.mjs
 .words-tmp/
+!docs/*.mp4
