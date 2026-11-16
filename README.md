@@ -24,9 +24,6 @@
   <a href="#styles">Styles</a>
 </p>
 
-<p align="center">
-  <a href="docs/demo.mp4"><img src="docs/hero.gif" alt="A system map where a cart and stock flow into an order, then a card showing what the order contains" width="100%"></a>
-</p>
 
 <p align="center">Watch the 47-second sample with sound</p>
 
