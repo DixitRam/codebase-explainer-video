@@ -28,7 +28,12 @@
   <a href="docs/demo.mp4"><img src="docs/hero.gif" alt="A system map where a cart and stock flow into an order, then a card showing what the order contains" width="100%"></a>
 </p>
 
-<p align="center"><a href="docs/demo.mp4">Watch the 47-second sample with sound</a></p>
+<p align="center">Watch the 47-second sample with sound</p>
+
+
+https://github.com/user-attachments/assets/86511b6b-314e-4e7f-aa07-8186b3875209
+
+
 
 ## Install
 
